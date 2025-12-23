@@ -28,7 +28,7 @@ const INTERESTS_DATA = [
 const IDOLS_DATA = [
     { name: "Cristiano Ronaldo", role: "Al Nassr", icon: "⚽", link: "https://www.transfermarkt.com/cristiano-ronaldo/profil/spieler/8198" },
     { name: "Max Verstappen", role: "Red Bull Racing", icon: "🏎️", link: "https://www.formula1.com/en/drivers/max-verstappen.html" },
-    { name: "Carlos Sainz", role: "Williams", icon: "🌶️", note: "Name similarity!", link: "https://www.formula1.com/en/drivers/carlos-sainz.html" }
+    { name: "Carlos Sainz", role: "Williams", icon: "🏎️", note: "Name similarity!", link: "https://www.formula1.com/en/drivers/carlos-sainz.html" }
 ];
 
 const PROJECTS_DATA = [
@@ -208,7 +208,7 @@ const Icons = {
     contact: `<i data-lucide="mail" class="w-4 h-4"></i>`
 };
 
-// [DD.JSON] Navbar: Full width desktop, Dropdown Card Mobile
+// Navbar
 const getNavbarHTML = (state) => {
     const navLinks = Object.keys(Icons).map(key => {
         const isActive = state.activeTab === key;
@@ -228,7 +228,6 @@ const getNavbarHTML = (state) => {
     return `
         <div class="w-full backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-6 md:px-8 transition-all duration-300 ${paddingClass} ${bgClass}">
             <div class="w-full flex justify-between items-center relative">
-                <!-- Left: Identity -->
                 <div class="flex items-center gap-3 justify-start cursor-pointer group touch-target" onclick="navigateTo('home')">
                     <div class="w-9 h-9 overflow-hidden rounded-full border border-stone-200 dark:border-stone-800 group-hover:border-accent-500 transition-colors">
                         <div class="w-full h-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-xs font-bold text-stone-700 dark:text-stone-300">RS</div> 
@@ -236,14 +235,12 @@ const getNavbarHTML = (state) => {
                     <span class="font-bold text-lg text-stone-900 dark:text-stone-100 tracking-tight">Rahmad<span class="text-stone-400">Sains</span></span>
                 </div>
                 
-                <!-- Center: Desktop Nav (Pill) -->
                 <div class="hidden md:flex justify-center absolute left-1/2 -translate-x-1/2">
                     <div class="flex items-center bg-white dark:bg-stone-900 px-1.5 py-1.5 rounded-full border border-stone-200 dark:border-stone-800 shadow-sm gap-1">
                         ${navLinks}
                     </div>
                 </div>
                 
-                <!-- Right: Actions -->
                 <div class="flex items-center justify-end gap-3">
                     <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-stone-900 rounded-full border border-stone-200 dark:border-stone-800 cursor-help group relative shadow-sm">
                         <span class="relative flex h-2 w-2">
@@ -257,14 +254,12 @@ const getNavbarHTML = (state) => {
                         <i data-lucide="${state.theme === 'dark' ? 'sun' : 'moon'}" class="w-4 h-4"></i>
                     </button>
                     
-                    <!-- Mobile Hamburger -->
                     <button class="md:hidden touch-target text-stone-600 dark:text-stone-300 p-2" onclick="appStore.toggleMobileMenu()">
                         <i data-lucide="${state.mobileMenuOpen ? 'x' : 'menu'}" class="w-6 h-6"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- [DD.JSON] Mobile Dropdown Card (Not Fullscreen) -->
             ${state.mobileMenuOpen ? `
                 <div class="absolute top-full right-4 mt-2 w-56 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl p-2 flex flex-col gap-1 z-50 animate-dropdown mobile-dropdown">
                     ${Object.keys(Icons).map(key => `
@@ -290,7 +285,7 @@ const renderHome = () => `
         <section class="flex flex-col gap-6 text-center items-center z-10 relative">
             <h1 class="text-5xl md:text-7xl font-bold leading-tight text-stone-900 dark:text-stone-100 tracking-tight">
                 Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">
-                    Rahmad
+                    Rahmad Sains
                     <svg class="absolute w-full h-3 -bottom-1 left-0 text-accent-200 dark:text-accent-800 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" /></svg>
                 </span>.
             </h1>
@@ -352,14 +347,40 @@ const renderProjects = () => `
     </div>
 `;
 
+// [UPDATED] Render About with Stacked Photos & Reveal Effect
 const renderAbout = () => `
-    <div class="max-w-2xl mx-auto space-y-16 py-12 px-6 md:px-8 animate-fade-up">
-        <div class="prose prose-stone dark:prose-invert prose-lg text-left">
-            <h2 class="text-3xl font-bold text-stone-900 dark:text-white mb-4">Just a Student.</h2>
-            <div class="w-10 h-0.5 bg-accent-500 rounded-full mb-6"></div>
-            <p class="text-lg text-stone-600 dark:text-stone-300 leading-relaxed">I'm Rahmad. I don't have a fancy job title. I'm just a high school student who enjoys the logic behind code and the thrill of a good F1 race.</p>
-            <p class="text-lg text-stone-600 dark:text-stone-300 leading-relaxed">My goal right now is simple: Learn as much as I can, graduate, and maybe build something useful along the way.</p>
+    <div class="max-w-3xl mx-auto space-y-16 py-12 px-6 md:px-8 animate-fade-up">
+        
+        <!-- [NEW] Photo Stack Section -->
+        <div class="flex flex-col md:flex-row gap-12 items-center">
+            <div class="relative w-48 h-64 flex-shrink-0 group cursor-pointer perspective-1000" onclick="this.classList.toggle('reveal')">
+                <!-- Helper text -->
+                <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Tap to reveal</div>
+                
+                <!-- Bottom Photo (Rotated Right) -->
+                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-200 overflow-hidden transform transition-all duration-500 ease-out group-hover:rotate-6 group-hover:translate-x-12 group-[.reveal]:rotate-6 group-[.reveal]:translate-x-12 origin-bottom-right z-10">
+                    <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=400" alt="Rahmad Coding" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-[.reveal]:opacity-100">
+                </div>
+                
+                <!-- Middle Photo (Rotated Left) -->
+                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-300 overflow-hidden transform transition-all duration-500 ease-out group-hover:-rotate-6 group-hover:-translate-x-12 group-[.reveal]:-rotate-6 group-[.reveal]:-translate-x-12 origin-bottom-left z-0">
+                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=400" alt="Rahmad Gaming" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-[.reveal]:opacity-100">
+                </div>
+                
+                <!-- Top Photo (Center) -->
+                <div class="relative w-full h-full rounded-2xl shadow-xl border-4 border-white dark:border-stone-800 bg-stone-100 overflow-hidden transform transition-all duration-500 group-hover:-translate-y-4 group-[.reveal]:-translate-y-4 z-20">
+                    <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=400" alt="Rahmad Portrait" class="w-full h-full object-cover">
+                </div>
+            </div>
+
+            <div class="prose prose-stone dark:prose-invert prose-lg text-left">
+                <h2 class="text-3xl font-bold text-stone-900 dark:text-white mb-4">Just a Student.</h2>
+                <div class="w-10 h-0.5 bg-accent-500 rounded-full mb-6"></div>
+                <p class="text-lg text-stone-600 dark:text-stone-300 leading-relaxed">I'm Rahmad. I don't have a fancy job title. I'm just a high school student who enjoys the logic behind code and the thrill of a good F1 race.</p>
+                <p class="text-lg text-stone-600 dark:text-stone-300 leading-relaxed">My goal right now is simple: Learn as much as I can, graduate, and maybe build something useful along the way.</p>
+            </div>
         </div>
+
         <div class="border-t border-stone-200 dark:border-stone-800 pt-8">
             <h3 class="text-sm font-bold text-stone-900 dark:text-white uppercase tracking-widest mb-6 text-left">People I Look Up To</h3>
             <div class="grid gap-4">
@@ -375,7 +396,7 @@ const renderAbout = () => `
 `;
 
 const renderBlog = (state) => {
-    const categories = ['All', 'Tech', 'Motorsports', 'Football', 'Coffee & Thoughts'];
+    const categories = ['All', 'Technology', 'Motorsports', 'Football', 'Coffee & Thoughts'];
     const filteredPosts = BLOG_DATA.filter(post => {
         const matchesCategory = state.filterCategory === 'All' || post.category === state.filterCategory;
         const matchesSearch = post.title.toLowerCase().includes(state.searchTerm.toLowerCase());
@@ -438,18 +459,36 @@ const renderContact = () => `
     </div>
 `;
 
-// [DD.JSON] Footer: Full width, Left-Right split, Responsive scaling
+// [UPDATED] Footer with "Let's Talk" Button
 const renderFooter = () => `
-    <div class="w-full max-w-7xl mx-auto px-6 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 py-12">
-        <div class="text-left max-w-sm">
-            <h2 class="text-xl font-bold text-stone-900 dark:text-white tracking-tight">Rahmad<span class="text-stone-400">Sains</span></h2>
-            <p class="text-sm md:text-base font-medium text-stone-600 dark:text-stone-400 mt-2 leading-relaxed">Built slowly between homework, coffee, and late nights.</p>
-            <p class="text-[10px] text-stone-400 mt-2 opacity-60">* Please don’t copy without context.</p>
-        </div>
-        <div class="flex flex-col md:flex-row gap-4 md:gap-8 text-base font-medium text-stone-600 dark:text-stone-400">
-            <a onclick="navigateTo('home')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Home</a>
-            <a onclick="navigateTo('projects')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Projects</a>
-            <a onclick="navigateTo('blog')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Journal</a>
+    <div class="w-full max-w-7xl mx-auto px-6 md:px-8 py-12">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            
+            <!-- Left: Brand -->
+            <div class="text-left max-w-sm">
+                <h2 class="text-xl font-bold text-stone-900 dark:text-white tracking-tight">Rahmad<span class="text-stone-400">Sains</span></h2>
+                <p class="text-sm md:text-base font-medium text-stone-600 dark:text-stone-400 mt-2 leading-relaxed">Built slowly between homework, coffee, and late nights.</p>
+                <p class="text-[10px] text-stone-400 mt-2 opacity-60">* Please don’t copy without context.</p>
+            </div>
+
+            <!-- Right: Links & CTA -->
+            <div class="flex flex-col items-end gap-6">
+                <!-- Navigation -->
+                <div class="flex gap-6 text-base font-medium text-stone-600 dark:text-stone-400">
+                    <a onclick="navigateTo('home')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Home</a>
+                    <span class="text-stone-300 dark:text-stone-700 flex items-center">·</span>
+                    <a onclick="navigateTo('projects')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Projects</a>
+                    <span class="text-stone-300 dark:text-stone-700 flex items-center">·</span>
+                    <a onclick="navigateTo('blog')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Journal</a>
+                </div>
+
+                <!-- [NEW] Let's Talk Button -->
+                <a href="https://instagram.com/${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener noreferrer" 
+                   class="flex items-center gap-2 px-6 py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 rounded-full font-bold text-sm shadow-lg hover:scale-105 hover:shadow-xl transition-all">
+                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                    <span>Let's talk with me</span>
+                </a>
+            </div>
         </div>
     </div>
 `;
