@@ -1,6 +1,6 @@
 /**
  * --------------------------------------------------------------------------
- * DATA LAYER (Updated per dd.json)
+ * DATA LAYER (Updated per dd(1).json)
  * --------------------------------------------------------------------------
  */
 const SITE_CONFIG = {
@@ -8,7 +8,7 @@ const SITE_CONFIG = {
     role: "Student",
     status: {
         label: "School Holiday",
-        state: "holiday", // 'holiday' (green) or 'active' (red)
+        state: "holiday",
         note: "Manually updated by Rahmad"
     },
     social: {
@@ -28,7 +28,7 @@ const INTERESTS_DATA = [
 const IDOLS_DATA = [
     { name: "Cristiano Ronaldo", role: "Al Nassr", icon: "⚽", link: "https://www.transfermarkt.com/cristiano-ronaldo/profil/spieler/8198" },
     { name: "Max Verstappen", role: "Red Bull Racing", icon: "🏎️", link: "https://www.formula1.com/en/drivers/max-verstappen.html" },
-    { name: "Carlos Sainz", role: "Williams", icon: "🏎️", note: "Name similarity!", link: "https://www.formula1.com/en/drivers/carlos-sainz.html" }
+    { name: "Carlos Sainz", role: "Williams", icon: "🌶️", note: "Name similarity!", link: "https://www.formula1.com/en/drivers/carlos-sainz.html" }
 ];
 
 const PROJECTS_DATA = [
@@ -124,6 +124,28 @@ const BLOG_DATA = [
 
 /**
  * --------------------------------------------------------------------------
+ * ANIMATION ENGINE (Intersection Observer)
+ * --------------------------------------------------------------------------
+ */
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.remove('opacity-0', 'blur-[6px]', 'translate-y-4');
+            entry.target.classList.add('opacity-100', 'blur-0', 'translate-y-0');
+            revealObserver.unobserve(entry.target); // Trigger once only
+        }
+    });
+}, {
+    root: null,
+    threshold: 0.1, // Trigger when 10% visible
+    rootMargin: "0px 0px -50px 0px" // Offset slightly
+});
+
+// Helper class for reveal animations
+const REVEAL_CLASS = "opacity-0 blur-[6px] translate-y-4 transition-all duration-[420ms] ease-out";
+
+/**
+ * --------------------------------------------------------------------------
  * CORE ARCHITECTURE
  * --------------------------------------------------------------------------
  */
@@ -140,7 +162,7 @@ class Store {
             route: initialRoute,
             searchTerm: '',
             filterCategory: 'All',
-            isLoading: true,
+            showIntro: true, // [DD(1).JSON] Blocking Intro
             isScrolled: false,
             mobileMenuOpen: false
         };
@@ -182,7 +204,7 @@ const navigateTo = (path) => {
     appStore.setState({ 
         activeTab: page === 'blog' && id ? 'blog' : page, 
         route: { page, id },
-        mobileMenuOpen: false // Close menu on navigate
+        mobileMenuOpen: false 
     });
     appStore.addVisitedTab(page);
     window.scrollTo(0, 0);
@@ -208,7 +230,22 @@ const Icons = {
     contact: `<i data-lucide="mail" class="w-4 h-4"></i>`
 };
 
-// Navbar
+// [DD(1).JSON] Intro Screen Component
+const renderIntro = () => `
+    <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-stone-950 text-white transition-opacity duration-500" id="intro-screen">
+        <div class="space-y-6 text-center w-64">
+            <h1 class="text-3xl font-bold tracking-tight animate-[fadeIn_0.4s_ease-out]">Rahmad Sains</h1>
+            <div class="h-[3px] w-full bg-stone-800 rounded-full overflow-hidden">
+                <div class="h-full bg-[#ff8c42] w-0 animate-[fillProgress_1.5s_ease-in-out_forwards]"></div>
+            </div>
+        </div>
+        <style>
+            @keyframes fillProgress { 0% { width: 0%; } 100% { width: 100%; } }
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        </style>
+    </div>
+`;
+
 const getNavbarHTML = (state) => {
     const navLinks = Object.keys(Icons).map(key => {
         const isActive = state.activeTab === key;
@@ -234,13 +271,11 @@ const getNavbarHTML = (state) => {
                     </div>
                     <span class="font-bold text-lg text-stone-900 dark:text-stone-100 tracking-tight">Rahmad<span class="text-stone-400">Sains</span></span>
                 </div>
-                
                 <div class="hidden md:flex justify-center absolute left-1/2 -translate-x-1/2">
                     <div class="flex items-center bg-white dark:bg-stone-900 px-1.5 py-1.5 rounded-full border border-stone-200 dark:border-stone-800 shadow-sm gap-1">
                         ${navLinks}
                     </div>
                 </div>
-                
                 <div class="flex items-center justify-end gap-3">
                     <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-stone-900 rounded-full border border-stone-200 dark:border-stone-800 cursor-help group relative shadow-sm">
                         <span class="relative flex h-2 w-2">
@@ -249,31 +284,21 @@ const getNavbarHTML = (state) => {
                         </span>
                         <div class="absolute top-full mt-2 right-0 bg-stone-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">${SITE_CONFIG.status.note}</div>
                     </div>
-                    
                     <button onclick="appStore.toggleTheme()" class="touch-target p-2 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:border-accent-300 dark:hover:border-accent-700 text-stone-500 dark:text-stone-400 transition-all shadow-sm">
                         <i data-lucide="${state.theme === 'dark' ? 'sun' : 'moon'}" class="w-4 h-4"></i>
                     </button>
-                    
                     <button class="md:hidden touch-target text-stone-600 dark:text-stone-300 p-2" onclick="appStore.toggleMobileMenu()">
                         <i data-lucide="${state.mobileMenuOpen ? 'x' : 'menu'}" class="w-6 h-6"></i>
                     </button>
                 </div>
             </div>
-
             ${state.mobileMenuOpen ? `
                 <div class="absolute top-full right-4 mt-2 w-56 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl p-2 flex flex-col gap-1 z-50 animate-dropdown mobile-dropdown">
                     ${Object.keys(Icons).map(key => `
-                        <button onclick="navigateTo('${key}')" 
-                            class="flex items-center gap-3 p-3 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 text-left transition-colors ${state.activeTab === key ? 'bg-stone-100 dark:bg-stone-800 text-accent-600 dark:text-accent-500 font-bold' : 'text-stone-600 dark:text-stone-300'}">
-                            ${Icons[key]} 
-                            <span class="capitalize text-sm">${key}</span>
+                        <button onclick="navigateTo('${key}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 text-left transition-colors ${state.activeTab === key ? 'bg-stone-100 dark:bg-stone-800 text-accent-600 dark:text-accent-500 font-bold' : 'text-stone-600 dark:text-stone-300'}">
+                            ${Icons[key]} <span class="capitalize text-sm">${key}</span>
                         </button>
                     `).join('')}
-                    <div class="h-px bg-stone-200 dark:bg-stone-800 my-1"></div>
-                    <div class="flex items-center gap-2 p-3 text-xs text-stone-400 font-medium">
-                        <span class="w-2 h-2 rounded-full ${SITE_CONFIG.status.state === 'holiday' ? 'bg-green-500' : 'bg-red-500'}"></span>
-                        ${SITE_CONFIG.status.label}
-                    </div>
                 </div>
             ` : ''}
         </div>
@@ -281,25 +306,23 @@ const getNavbarHTML = (state) => {
 };
 
 const renderHome = () => `
-    <div id="hero-section" class="max-w-4xl mx-auto space-y-20 py-20 animate-fade-up px-6 md:px-8">
-        <section class="flex flex-col gap-6 text-center items-center z-10 relative">
+    <div id="hero-section" class="max-w-4xl mx-auto space-y-20 py-20 px-6 md:px-8">
+        <section class="flex flex-col gap-6 text-center items-center z-10 relative ${REVEAL_CLASS} reveal-node">
             <h1 class="text-5xl md:text-7xl font-bold leading-tight text-stone-900 dark:text-stone-100 tracking-tight">
-                Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">
-                    Rahmad Sains
+                Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">Rahmad
                     <svg class="absolute w-full h-3 -bottom-1 left-0 text-accent-200 dark:text-accent-800 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" /></svg>
                 </span>.
             </h1>
             <p class="text-lg md:text-xl text-stone-600 dark:text-stone-300 font-medium italic font-serif">"I write and build to understand, not to impress."</p>
             <p class="text-base text-stone-500 dark:text-stone-400 max-w-lg leading-relaxed font-light">
                 A Grade 12 student exploring the web, one <code class="bg-stone-200 dark:bg-stone-800 px-1 py-0.5 rounded text-sm font-mono text-stone-700 dark:text-stone-300">&lt;div&gt;</code> at a time.
-                I build things to learn how they work.
             </p>
             <div class="flex flex-wrap gap-4 mt-6 justify-center">
                 <button onclick="navigateTo('projects')" class="touch-target px-6 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-bold rounded-full hover:bg-accent-600 dark:hover:bg-accent-500 hover:text-white dark:hover:text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-1">See My Work</button>
                 <a href="https://instagram.com/${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener noreferrer" class="touch-target px-6 py-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 font-bold rounded-full hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Say Hello</a>
             </div>
         </section>
-        <section>
+        <section class="${REVEAL_CLASS} reveal-node" style="transition-delay: 120ms">
             <div class="flex flex-col items-center mb-8">
                 <h2 class="text-xs font-bold text-stone-400 uppercase tracking-widest text-center mb-2">Obsessions & Interests</h2>
                 <div class="w-8 h-0.5 bg-accent-500 rounded-full"></div>
@@ -308,10 +331,7 @@ const renderHome = () => `
                 ${INTERESTS_DATA.map(item => `
                     <div class="hover-rotate-random flex items-center gap-2 px-5 py-3 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm hover:border-accent-400 hover:shadow-md transition-all cursor-default" style="--rotation: ${item.rotation}">
                         <i data-lucide="${item.icon}" class="w-5 h-5 text-stone-400"></i>
-                        <div>
-                            <span class="block text-sm font-bold text-stone-800 dark:text-stone-200">${item.label}</span>
-                            <span class="block text-[10px] text-stone-500 uppercase tracking-wider">${item.desc}</span>
-                        </div>
+                        <div><span class="block text-sm font-bold text-stone-800 dark:text-stone-200">${item.label}</span><span class="block text-[10px] text-stone-500 uppercase tracking-wider">${item.desc}</span></div>
                     </div>
                 `).join('')}
             </div>
@@ -320,15 +340,15 @@ const renderHome = () => `
 `;
 
 const renderProjects = () => `
-    <div class="max-w-5xl mx-auto py-12 px-6 md:px-8 animate-fade-up">
-        <div class="mb-12 text-left">
+    <div class="max-w-5xl mx-auto py-12 px-6 md:px-8">
+        <div class="mb-12 text-left ${REVEAL_CLASS} reveal-node">
             <h2 class="text-3xl font-bold mb-3 text-stone-900 dark:text-stone-100">Projects</h2>
             <div class="w-10 h-0.5 bg-accent-500 rounded-full mb-4"></div>
             <p class="text-stone-500 dark:text-stone-400">Code I wrote instead of studying for exams.</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            ${PROJECTS_DATA.map(project => `
-                <div class="bg-white dark:bg-stone-900 rounded-3xl p-7 border border-stone-200 dark:border-stone-800 hover:border-accent-500/50 transition-all shadow-sm hover:shadow-xl hover:-translate-y-1 group flex flex-col h-full relative overflow-hidden">
+            ${PROJECTS_DATA.map((project, idx) => `
+                <div class="bg-white dark:bg-stone-900 rounded-3xl p-7 border border-stone-200 dark:border-stone-800 hover:border-accent-500/50 transition-all shadow-sm hover:shadow-xl hover:-translate-y-1 group flex flex-col h-full relative overflow-hidden ${REVEAL_CLASS} reveal-node" style="transition-delay: ${idx * 100}ms">
                     <div class="flex justify-between items-start mb-4">
                         <div class="p-2.5 bg-stone-100 dark:bg-stone-800 rounded-xl text-stone-600 dark:text-stone-300"><i data-lucide="grid" class="w-6 h-6"></i></div>
                         <span class="px-3 py-1 bg-stone-100 dark:bg-stone-800 rounded-lg text-[10px] uppercase font-bold text-stone-500 tracking-wider">${project.status}</span>
@@ -347,32 +367,21 @@ const renderProjects = () => `
     </div>
 `;
 
-// [UPDATED] Render About with Stacked Photos & Reveal Effect
 const renderAbout = () => `
-    <div class="max-w-3xl mx-auto space-y-16 py-12 px-6 md:px-8 animate-fade-up">
-        
-        <!-- [NEW] Photo Stack Section -->
-        <div class="flex flex-col md:flex-row gap-12 items-center">
+    <div class="max-w-3xl mx-auto space-y-16 py-12 px-6 md:px-8">
+        <div class="flex flex-col md:flex-row gap-12 items-center ${REVEAL_CLASS} reveal-node">
             <div class="relative w-48 h-64 flex-shrink-0 group cursor-pointer perspective-1000" onclick="this.classList.toggle('reveal')">
-                <!-- Helper text -->
                 <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Tap to reveal</div>
-                
-                <!-- Bottom Photo (Rotated Right) -->
                 <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-200 overflow-hidden transform transition-all duration-500 ease-out group-hover:rotate-6 group-hover:translate-x-12 group-[.reveal]:rotate-6 group-[.reveal]:translate-x-12 origin-bottom-right z-10">
-                    <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=400" alt="Rahmad Coding" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-[.reveal]:opacity-100">
+                    <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-[.reveal]:opacity-100">
                 </div>
-                
-                <!-- Middle Photo (Rotated Left) -->
                 <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-300 overflow-hidden transform transition-all duration-500 ease-out group-hover:-rotate-6 group-hover:-translate-x-12 group-[.reveal]:-rotate-6 group-[.reveal]:-translate-x-12 origin-bottom-left z-0">
-                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=400" alt="Rahmad Gaming" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-[.reveal]:opacity-100">
+                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-[.reveal]:opacity-100">
                 </div>
-                
-                <!-- Top Photo (Center) -->
                 <div class="relative w-full h-full rounded-2xl shadow-xl border-4 border-white dark:border-stone-800 bg-stone-100 overflow-hidden transform transition-all duration-500 group-hover:-translate-y-4 group-[.reveal]:-translate-y-4 z-20">
-                    <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=400" alt="Rahmad Portrait" class="w-full h-full object-cover">
+                    <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover">
                 </div>
             </div>
-
             <div class="prose prose-stone dark:prose-invert prose-lg text-left">
                 <h2 class="text-3xl font-bold text-stone-900 dark:text-white mb-4">Just a Student.</h2>
                 <div class="w-10 h-0.5 bg-accent-500 rounded-full mb-6"></div>
@@ -380,8 +389,7 @@ const renderAbout = () => `
                 <p class="text-lg text-stone-600 dark:text-stone-300 leading-relaxed">My goal right now is simple: Learn as much as I can, graduate, and maybe build something useful along the way.</p>
             </div>
         </div>
-
-        <div class="border-t border-stone-200 dark:border-stone-800 pt-8">
+        <div class="border-t border-stone-200 dark:border-stone-800 pt-8 ${REVEAL_CLASS} reveal-node">
             <h3 class="text-sm font-bold text-stone-900 dark:text-white uppercase tracking-widest mb-6 text-left">People I Look Up To</h3>
             <div class="grid gap-4">
                 ${IDOLS_DATA.map(idol => `
@@ -396,7 +404,7 @@ const renderAbout = () => `
 `;
 
 const renderBlog = (state) => {
-    const categories = ['All', 'Technology', 'Motorsports', 'Football', 'Coffee & Thoughts'];
+    const categories = ['All', 'Tech', 'Motorsports', 'Football', 'Coffee & Thoughts'];
     const filteredPosts = BLOG_DATA.filter(post => {
         const matchesCategory = state.filterCategory === 'All' || post.category === state.filterCategory;
         const matchesSearch = post.title.toLowerCase().includes(state.searchTerm.toLowerCase());
@@ -404,8 +412,8 @@ const renderBlog = (state) => {
     });
 
     return `
-        <div class="max-w-3xl mx-auto py-12 px-6 md:px-8 animate-fade-up">
-            <div class="mb-10 text-left">
+        <div class="max-w-3xl mx-auto py-12 px-6 md:px-8">
+            <div class="mb-10 text-left ${REVEAL_CLASS} reveal-node">
                 <h2 class="text-3xl font-bold mb-2 text-stone-900 dark:text-white">Journal</h2>
                 <div class="w-10 h-0.5 bg-accent-500 rounded-full mb-4"></div>
                 <p class="text-xl text-stone-600 dark:text-stone-300 font-serif italic mb-2">"This is where I think out loud."</p>
@@ -418,8 +426,8 @@ const renderBlog = (state) => {
                 </div>
             </div>
             <div class="space-y-4">
-                ${filteredPosts.length > 0 ? filteredPosts.map((post) => `
-                    <div onclick="navigateTo('blog/${post.id}')" class="group block p-6 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 hover:border-accent-500/50 cursor-pointer transition-all ${post.pinned ? 'ring-1 ring-accent-200 dark:ring-accent-900 bg-accent-50/50 dark:bg-accent-900/10' : ''}">
+                ${filteredPosts.length > 0 ? filteredPosts.map((post, idx) => `
+                    <div onclick="navigateTo('blog/${post.id}')" class="group block p-6 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 hover:border-accent-500/50 cursor-pointer transition-all ${post.pinned ? 'ring-1 ring-accent-200 dark:ring-accent-900 bg-accent-50/50 dark:bg-accent-900/10' : ''} ${REVEAL_CLASS} reveal-node" style="transition-delay: ${idx * 100}ms">
                         ${post.pinned ? '<div class="flex items-center gap-1 text-[10px] font-bold text-accent-600 mb-2"><i data-lucide="pin" class="w-3 h-3"></i> START HERE</div>' : ''}
                         <div class="flex items-center gap-3 mb-3"><span class="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">${post.mood}</span><span class="text-[10px] text-stone-400">•</span><span class="text-[10px] text-stone-400">${post.readTime} read</span></div>
                         <h3 class="text-xl font-bold mb-2 text-stone-900 dark:text-white group-hover:text-accent-600 transition-colors">${post.title}</h3>
@@ -427,7 +435,7 @@ const renderBlog = (state) => {
                     </div>
                 `).join('') : '<div class="text-center py-12 text-stone-400"><p>Nothing found.</p></div>'}
             </div>
-            <div class="mt-12 pt-8 border-t border-stone-200 dark:border-stone-800 text-center"><p class="text-xs text-stone-400 italic">Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.</p></div>
+            <div class="mt-12 pt-8 border-t border-stone-200 dark:border-stone-800 text-center ${REVEAL_CLASS} reveal-node"><p class="text-xs text-stone-400 italic">Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.</p></div>
         </div>
     `;
 };
@@ -450,7 +458,7 @@ const renderBlogDetail = (id) => {
 };
 
 const renderContact = () => `
-    <div class="max-w-2xl mx-auto py-12 px-6 md:px-8 animate-fade-up text-left">
+    <div class="max-w-2xl mx-auto py-12 px-6 md:px-8 ${REVEAL_CLASS} reveal-node text-left">
         <div class="mb-10"><h2 class="text-3xl font-bold mb-4 text-stone-900 dark:text-white">Get In Touch</h2><p class="text-stone-500 dark:text-stone-400">Want to discuss F1 strategies or code bugs? Drop a message.</p></div>
         <div class="bg-white dark:bg-stone-900 p-8 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm">
             <a href="mailto:${SITE_CONFIG.social.email}" class="block mb-8"><div class="w-16 h-16 bg-accent-50 dark:bg-stone-800 rounded-2xl flex items-center justify-center text-accent-600 mb-4"><i data-lucide="mail" class="w-8 h-8"></i></div><p class="text-lg font-bold text-stone-900 dark:text-white hover:underline">${SITE_CONFIG.social.email}</p><p class="text-sm text-stone-500">Email Me</p></a>
@@ -459,21 +467,15 @@ const renderContact = () => `
     </div>
 `;
 
-// [UPDATED] Footer with "Let's Talk" Button
 const renderFooter = () => `
     <div class="w-full max-w-7xl mx-auto px-6 md:px-8 py-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-            
-            <!-- Left: Brand -->
             <div class="text-left max-w-sm">
                 <h2 class="text-xl font-bold text-stone-900 dark:text-white tracking-tight">Rahmad<span class="text-stone-400">Sains</span></h2>
                 <p class="text-sm md:text-base font-medium text-stone-600 dark:text-stone-400 mt-2 leading-relaxed">Built slowly between homework, coffee, and late nights.</p>
                 <p class="text-[10px] text-stone-400 mt-2 opacity-60">* Please don’t copy without context.</p>
             </div>
-
-            <!-- Right: Links & CTA -->
             <div class="flex flex-col items-end gap-6">
-                <!-- Navigation -->
                 <div class="flex gap-6 text-base font-medium text-stone-600 dark:text-stone-400">
                     <a onclick="navigateTo('home')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Home</a>
                     <span class="text-stone-300 dark:text-stone-700 flex items-center">·</span>
@@ -481,8 +483,6 @@ const renderFooter = () => `
                     <span class="text-stone-300 dark:text-stone-700 flex items-center">·</span>
                     <a onclick="navigateTo('blog')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Journal</a>
                 </div>
-
-                <!-- [NEW] Let's Talk Button -->
                 <a href="https://instagram.com/${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener noreferrer" 
                    class="flex items-center gap-2 px-6 py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 rounded-full font-bold text-sm shadow-lg hover:scale-105 hover:shadow-xl transition-all">
                     <i data-lucide="instagram" class="w-4 h-4"></i>
@@ -500,12 +500,35 @@ const renderFooter = () => `
  */
 
 const renderApp = (state, oldState) => {
-    // Only re-render what changed
     const mounts = {
         navbar: document.getElementById('navbar-mount'),
         main: document.getElementById('main-mount'),
-        footer: document.getElementById('footer-mount')
+        footer: document.getElementById('footer-mount'),
+        app: document.getElementById('app')
     };
+
+    // [DD(1).JSON] Blocking Intro Screen Logic
+    if (state.showIntro) {
+        // If intro active, check if element exists, if not render it
+        if (!document.getElementById('intro-screen')) {
+            const introDiv = document.createElement('div');
+            introDiv.innerHTML = renderIntro();
+            mounts.app.appendChild(introDiv.firstElementChild);
+            
+            // Auto dismiss logic after 1.8s
+            setTimeout(() => {
+                const introEl = document.getElementById('intro-screen');
+                if (introEl) {
+                    introEl.style.opacity = '0';
+                    setTimeout(() => {
+                        introEl.remove();
+                        appStore.setState({ showIntro: false });
+                    }, 500); // Fade out duration
+                }
+            }, 1800);
+        }
+        // Don't render main app content yet to improve performance or just let it render behind
+    }
 
     // 1. Navbar
     if (!oldState || state.activeTab !== oldState.activeTab || state.isScrolled !== oldState.isScrolled || state.theme !== oldState.theme || state.mobileMenuOpen !== oldState.mobileMenuOpen) {
@@ -526,7 +549,7 @@ const renderApp = (state, oldState) => {
         }
         mounts.main.innerHTML = mainHTML;
         
-        // Re-attach listeners
+        // Setup Search Listener
         const searchInput = document.getElementById('search-input');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => appStore.setState({ searchTerm: e.target.value }));
@@ -539,6 +562,9 @@ const renderApp = (state, oldState) => {
         catBtns.forEach(btn => {
             btn.addEventListener('click', () => appStore.setState({ filterCategory: btn.dataset.cat }));
         });
+
+        // [DD(1).JSON] Re-attach Intersection Observer to new elements
+        document.querySelectorAll('.reveal-node').forEach(el => revealObserver.observe(el));
     }
 
     // 3. Footer
@@ -546,20 +572,9 @@ const renderApp = (state, oldState) => {
         mounts.footer.innerHTML = renderFooter();
     }
 
-    // 4. Loading State
-    if (state.isLoading) {
-        setTimeout(() => {
-            const loader = document.getElementById('initial-loader');
-            if (loader) {
-                loader.style.opacity = '0';
-                loader.style.transform = 'scale(1.05)';
-                setTimeout(() => {
-                    loader.remove();
-                    appStore.setState({ isLoading: false });
-                }, 600);
-            }
-        }, 800); 
-    }
+    // Remove Initial Loader if present (handled by Intro now, but safe to keep)
+    const loader = document.getElementById('initial-loader');
+    if (loader) loader.remove();
 
     // Init icons
     lucide.createIcons();
