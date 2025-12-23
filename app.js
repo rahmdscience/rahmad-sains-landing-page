@@ -1,6 +1,6 @@
 /**
  * --------------------------------------------------------------------------
- * DATA LAYER (Konfigurasi & Konten)
+ * DATA LAYER (Updated per dd.json)
  * --------------------------------------------------------------------------
  */
 const SITE_CONFIG = {
@@ -8,7 +8,7 @@ const SITE_CONFIG = {
     role: "Student",
     status: {
         label: "School Holiday",
-        state: "holiday", // opsi: 'holiday' (hijau) atau 'active' (merah)
+        state: "holiday", // 'holiday' (green) or 'active' (red)
         note: "Manually updated by Rahmad"
     },
     social: {
@@ -124,33 +124,16 @@ const BLOG_DATA = [
 
 /**
  * --------------------------------------------------------------------------
- * CORE ARCHITECTURE (State, Router, Store)
+ * CORE ARCHITECTURE
  * --------------------------------------------------------------------------
  */
-
-// Helper aman untuk mengambil hash URL (mencegah error di iframe/sandbox)
-const getSafeHash = () => { 
-    try { 
-        return window.location.hash.slice(1); 
-    } catch (e) { 
-        return ''; 
-    } 
-};
-
-// Parser rute sederhana: #blog/1 -> { page: 'blog', id: '1' }
-const parseRoute = (hash) => { 
-    const parts = hash.split('/'); 
-    return { 
-        page: parts[0] || 'home', 
-        id: parts[1] || null 
-    }; 
-};
+const getSafeHash = () => { try { return window.location.hash.slice(1); } catch (e) { return ''; } };
+const parseRoute = (hash) => { const parts = hash.split('/'); return { page: parts[0] || 'home', id: parts[1] || null }; };
 
 class Store {
     constructor() {
         const initialRoute = parseRoute(getSafeHash());
         this.state = {
-            // Deteksi preferensi tema sistem (Dark/Light)
             theme: localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
             visitedTabs: new Set(['home']),
             activeTab: initialRoute.page,
@@ -158,62 +141,53 @@ class Store {
             searchTerm: '',
             filterCategory: 'All',
             isLoading: true,
-            isScrolled: false
+            isScrolled: false,
+            mobileMenuOpen: false
         };
         this.listeners = [];
         this.initTheme();
     }
-
-    // Terapkan class 'dark' ke elemen <html>
     initTheme() {
         if (this.state.theme === 'dark') document.documentElement.classList.add('dark');
         else document.documentElement.classList.remove('dark');
     }
-
     setState(newState) { 
         const oldState = { ...this.state };
         this.state = { ...this.state, ...newState };
         this.notify(oldState); 
     }
-
     toggleTheme() {
         const newTheme = this.state.theme === 'dark' ? 'light' : 'dark';
         this.setState({ theme: newTheme });
         localStorage.setItem('theme', newTheme);
         this.initTheme();
     }
-
+    toggleMobileMenu() {
+        this.setState({ mobileMenuOpen: !this.state.mobileMenuOpen });
+    }
     addVisitedTab(tab) {
         if (tab === 'blog-detail') return;
         const newSet = new Set(this.state.visitedTabs);
         newSet.add(tab);
         this.setState({ visitedTabs: newSet });
     }
-
-    subscribe(listener) { 
-        this.listeners.push(listener); 
-        return () => { 
-            this.listeners = this.listeners.filter(l => l !== listener); 
-        }; 
-    }
-
-    notify(oldState) { 
-        this.listeners.forEach(listener => listener(this.state, oldState)); 
-    }
+    subscribe(listener) { this.listeners.push(listener); return () => { this.listeners = this.listeners.filter(l => l !== listener); }; }
+    notify(oldState) { this.listeners.forEach(listener => listener(this.state, oldState)); }
 }
 
 const appStore = new Store();
-
-// Fungsi navigasi utama
 const navigateTo = (path) => {
     try { window.location.hash = path; } catch (e) { console.warn("Sandbox limitation"); }
     const { page, id } = parseRoute(path);
-    appStore.setState({ activeTab: page === 'blog' && id ? 'blog' : page, route: { page, id } });
+    appStore.setState({ 
+        activeTab: page === 'blog' && id ? 'blog' : page, 
+        route: { page, id },
+        mobileMenuOpen: false // Close menu on navigate
+    });
     appStore.addVisitedTab(page);
-    window.scrollTo(0, 0); // Reset scroll ke atas saat pindah halaman
+    window.scrollTo(0, 0);
 };
 
-// Listener scroll untuk efek navbar
 window.addEventListener('scroll', () => {
     const isScrolled = window.scrollY > 20;
     if (isScrolled !== appStore.state.isScrolled) {
@@ -223,53 +197,55 @@ window.addEventListener('scroll', () => {
 
 /**
  * --------------------------------------------------------------------------
- * UI COMPONENTS (Fungsi Render HTML)
+ * UI COMPONENTS
  * --------------------------------------------------------------------------
  */
-
 const Icons = {
     home: `<i data-lucide="home" class="w-4 h-4"></i>`,
     projects: `<i data-lucide="grid" class="w-4 h-4"></i>`,
-    blog: `<i data-lucide="pen-tool" class="w-4 h-4"></i>`,
+    blog: `<i data-lucide="book" class="w-4 h-4"></i>`,
     about: `<i data-lucide="user" class="w-4 h-4"></i>`,
     contact: `<i data-lucide="mail" class="w-4 h-4"></i>`
 };
 
-// Render Navbar
+// [DD.JSON] Navbar: Full width desktop, Dropdown Card Mobile
 const getNavbarHTML = (state) => {
     const navLinks = Object.keys(Icons).map(key => {
         const isActive = state.activeTab === key;
         return `
             <button onclick="navigateTo('${key}')" 
                 class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 relative group 
-                ${isActive ? 'text-accent-600 dark:text-accent-500 font-bold bg-stone-100 dark:bg-stone-800 shadow-[0_0_15px_-3px_rgba(249,115,22,0.3)]' : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800/50'}">
+                ${isActive ? 'text-accent-600 dark:text-accent-500 font-bold bg-stone-100 dark:bg-stone-800' : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800/50'}">
                 ${Icons[key]}
                 <span class="capitalize">${key}</span>
             </button>
         `;
     }).join('');
 
-    const paddingClass = state.isScrolled ? 'py-2' : 'py-4'; 
-    const shadowClass = state.isScrolled ? 'shadow-md bg-stone-50/95 dark:bg-stone-950/95' : 'bg-stone-50/80 dark:bg-stone-950/80';
+    const paddingClass = state.isScrolled ? 'py-3' : 'py-5'; 
+    const bgClass = state.isScrolled ? 'bg-stone-50/95 dark:bg-stone-950/95 shadow-sm' : 'bg-transparent';
 
     return `
-        <div class="w-full backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-6 md:px-8 transition-all duration-300 ${paddingClass} ${shadowClass}">
-            <div class="w-full flex justify-between items-center gap-4">
+        <div class="w-full backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-6 md:px-8 transition-all duration-300 ${paddingClass} ${bgClass}">
+            <div class="w-full flex justify-between items-center relative">
+                <!-- Left: Identity -->
                 <div class="flex items-center gap-3 justify-start cursor-pointer group touch-target" onclick="navigateTo('home')">
-                    <div class="w-10 h-10 overflow-hidden rounded-full border border-stone-200 dark:border-stone-800 group-hover:border-accent-500 transition-colors">
-                        <div class="w-full h-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-xs font-bold">RS</div> 
+                    <div class="w-9 h-9 overflow-hidden rounded-full border border-stone-200 dark:border-stone-800 group-hover:border-accent-500 transition-colors">
+                        <div class="w-full h-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-xs font-bold text-stone-700 dark:text-stone-300">RS</div> 
                     </div>
                     <span class="font-bold text-lg text-stone-900 dark:text-stone-100 tracking-tight">Rahmad<span class="text-stone-400">Sains</span></span>
                 </div>
                 
-                <div class="hidden md:flex justify-center flex-1">
-                    <div class="flex items-center bg-white dark:bg-stone-900 px-2 py-1.5 rounded-full border border-stone-200 dark:border-stone-800 shadow-sm gap-1 transition-all duration-300 ${state.isScrolled ? 'scale-95' : 'scale-100'}">
+                <!-- Center: Desktop Nav (Pill) -->
+                <div class="hidden md:flex justify-center absolute left-1/2 -translate-x-1/2">
+                    <div class="flex items-center bg-white dark:bg-stone-900 px-1.5 py-1.5 rounded-full border border-stone-200 dark:border-stone-800 shadow-sm gap-1">
                         ${navLinks}
                     </div>
                 </div>
                 
+                <!-- Right: Actions -->
                 <div class="flex items-center justify-end gap-3">
-                    <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-stone-900 rounded-full border border-stone-200 dark:border-stone-800 cursor-help group relative shadow-sm">
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-stone-900 rounded-full border border-stone-200 dark:border-stone-800 cursor-help group relative shadow-sm">
                         <span class="relative flex h-2 w-2">
                           <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${SITE_CONFIG.status.state === 'holiday' ? 'bg-green-400' : 'bg-red-400'} opacity-75"></span>
                           <span class="relative inline-flex rounded-full h-2 w-2 ${SITE_CONFIG.status.state === 'holiday' ? 'bg-green-500' : 'bg-red-500'}"></span>
@@ -278,21 +254,39 @@ const getNavbarHTML = (state) => {
                     </div>
                     
                     <button onclick="appStore.toggleTheme()" class="touch-target p-2 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:border-accent-300 dark:hover:border-accent-700 text-stone-500 dark:text-stone-400 transition-all shadow-sm">
-                        <i data-lucide="${state.theme === 'dark' ? 'sun' : 'moon'}" class="w-5 h-5"></i>
+                        <i data-lucide="${state.theme === 'dark' ? 'sun' : 'moon'}" class="w-4 h-4"></i>
                     </button>
-                    <button class="md:hidden touch-target text-stone-600 dark:text-stone-300" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                    
+                    <!-- Mobile Hamburger -->
+                    <button class="md:hidden touch-target text-stone-600 dark:text-stone-300 p-2" onclick="appStore.toggleMobileMenu()">
+                        <i data-lucide="${state.mobileMenuOpen ? 'x' : 'menu'}" class="w-6 h-6"></i>
+                    </button>
                 </div>
             </div>
-            <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 w-full bg-stone-50 dark:bg-stone-950 border-b border-stone-200 dark:border-stone-800 shadow-xl p-4 flex flex-col gap-2">
-                ${Object.keys(Icons).map(key => `<button onclick="navigateTo('${key}'); document.getElementById('mobile-menu').classList.add('hidden')" class="touch-target flex items-center gap-3 p-3 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-900 text-left text-stone-600 dark:text-stone-300 font-medium capitalize w-full">${Icons[key]} ${key}</button>`).join('')}
-            </div>
+
+            <!-- [DD.JSON] Mobile Dropdown Card (Not Fullscreen) -->
+            ${state.mobileMenuOpen ? `
+                <div class="absolute top-full right-4 mt-2 w-56 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl p-2 flex flex-col gap-1 z-50 animate-dropdown mobile-dropdown">
+                    ${Object.keys(Icons).map(key => `
+                        <button onclick="navigateTo('${key}')" 
+                            class="flex items-center gap-3 p-3 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 text-left transition-colors ${state.activeTab === key ? 'bg-stone-100 dark:bg-stone-800 text-accent-600 dark:text-accent-500 font-bold' : 'text-stone-600 dark:text-stone-300'}">
+                            ${Icons[key]} 
+                            <span class="capitalize text-sm">${key}</span>
+                        </button>
+                    `).join('')}
+                    <div class="h-px bg-stone-200 dark:bg-stone-800 my-1"></div>
+                    <div class="flex items-center gap-2 p-3 text-xs text-stone-400 font-medium">
+                        <span class="w-2 h-2 rounded-full ${SITE_CONFIG.status.state === 'holiday' ? 'bg-green-500' : 'bg-red-500'}"></span>
+                        ${SITE_CONFIG.status.label}
+                    </div>
+                </div>
+            ` : ''}
         </div>
     `;
 };
 
-// Render Home
 const renderHome = () => `
-    <div id="hero-section" class="max-w-4xl mx-auto space-y-20 py-20 animate-fade-up px-6 md:px-8 relative overflow-hidden md:overflow-visible">
+    <div id="hero-section" class="max-w-4xl mx-auto space-y-20 py-20 animate-fade-up px-6 md:px-8">
         <section class="flex flex-col gap-6 text-center items-center z-10 relative">
             <h1 class="text-5xl md:text-7xl font-bold leading-tight text-stone-900 dark:text-stone-100 tracking-tight">
                 Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">
@@ -330,7 +324,6 @@ const renderHome = () => `
     </div>
 `;
 
-// Render Projects
 const renderProjects = () => `
     <div class="max-w-5xl mx-auto py-12 px-6 md:px-8 animate-fade-up">
         <div class="mb-12 text-left">
@@ -359,7 +352,6 @@ const renderProjects = () => `
     </div>
 `;
 
-// Render About
 const renderAbout = () => `
     <div class="max-w-2xl mx-auto space-y-16 py-12 px-6 md:px-8 animate-fade-up">
         <div class="prose prose-stone dark:prose-invert prose-lg text-left">
@@ -382,7 +374,6 @@ const renderAbout = () => `
     </div>
 `;
 
-// Render Blog
 const renderBlog = (state) => {
     const categories = ['All', 'Tech', 'Motorsports', 'Football', 'Coffee & Thoughts'];
     const filteredPosts = BLOG_DATA.filter(post => {
@@ -420,7 +411,6 @@ const renderBlog = (state) => {
     `;
 };
 
-// Render Blog Detail
 const renderBlogDetail = (id) => {
     const post = BLOG_DATA.find(p => p.id === parseInt(id));
     if (!post) { setTimeout(() => navigateTo('blog'), 0); return ''; }
@@ -438,7 +428,6 @@ const renderBlogDetail = (id) => {
     `;
 };
 
-// Render Contact
 const renderContact = () => `
     <div class="max-w-2xl mx-auto py-12 px-6 md:px-8 animate-fade-up text-left">
         <div class="mb-10"><h2 class="text-3xl font-bold mb-4 text-stone-900 dark:text-white">Get In Touch</h2><p class="text-stone-500 dark:text-stone-400">Want to discuss F1 strategies or code bugs? Drop a message.</p></div>
@@ -449,13 +438,17 @@ const renderContact = () => `
     </div>
 `;
 
-// Render Footer
+// [DD.JSON] Footer: Full width, Left-Right split, Responsive scaling
 const renderFooter = () => `
-    <div class="w-full px-8 md:px-12 flex flex-col md:flex-row justify-between items-start gap-6">
-        <div class="text-left max-w-sm"><h2 class="text-xl font-bold text-stone-900 dark:text-white tracking-tight">Rahmad<span class="text-stone-400">Sains</span></h2><p class="text-lg font-medium text-stone-600 dark:text-stone-400 mt-2 leading-relaxed">Built slowly between homework, coffee, and late nights.</p><p class="text-[10px] text-stone-400 mt-2">* Please don’t copy without context.</p></div>
-        <div class="flex gap-6 text-lg font-medium text-stone-600 dark:text-stone-400">
-            <a onclick="navigateTo('home')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Home</a><span class="text-stone-300 dark:text-stone-700 flex items-center">·</span>
-            <a onclick="navigateTo('projects')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Projects</a><span class="text-stone-300 dark:text-stone-700 flex items-center">·</span>
+    <div class="w-full max-w-7xl mx-auto px-6 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 py-12">
+        <div class="text-left max-w-sm">
+            <h2 class="text-xl font-bold text-stone-900 dark:text-white tracking-tight">Rahmad<span class="text-stone-400">Sains</span></h2>
+            <p class="text-sm md:text-base font-medium text-stone-600 dark:text-stone-400 mt-2 leading-relaxed">Built slowly between homework, coffee, and late nights.</p>
+            <p class="text-[10px] text-stone-400 mt-2 opacity-60">* Please don’t copy without context.</p>
+        </div>
+        <div class="flex flex-col md:flex-row gap-4 md:gap-8 text-base font-medium text-stone-600 dark:text-stone-400">
+            <a onclick="navigateTo('home')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Home</a>
+            <a onclick="navigateTo('projects')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Projects</a>
             <a onclick="navigateTo('blog')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Journal</a>
         </div>
     </div>
@@ -476,7 +469,7 @@ const renderApp = (state, oldState) => {
     };
 
     // 1. Navbar
-    if (!oldState || state.activeTab !== oldState.activeTab || state.isScrolled !== oldState.isScrolled || state.theme !== oldState.theme) {
+    if (!oldState || state.activeTab !== oldState.activeTab || state.isScrolled !== oldState.isScrolled || state.theme !== oldState.theme || state.mobileMenuOpen !== oldState.mobileMenuOpen) {
         mounts.navbar.innerHTML = getNavbarHTML(state);
     }
 
@@ -539,7 +532,7 @@ appStore.subscribe(renderApp);
 // Routing
 window.addEventListener('hashchange', () => {
     const { page, id } = parseRoute(getSafeHash());
-    appStore.setState({ activeTab: page === 'blog' && id ? 'blog' : page, route: { page, id } });
+    appStore.setState({ activeTab: page === 'blog' && id ? 'blog' : page, route: { page, id }, mobileMenuOpen: false });
     appStore.addVisitedTab(page);
 });
 
