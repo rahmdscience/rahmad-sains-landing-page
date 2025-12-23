@@ -14,7 +14,9 @@ const SITE_CONFIG = {
     social: {
         email: "rsainsalhafidz@gmail.com",
         instagram: "rahmdsai"
-    }
+    },
+    // Using the worker URL provided
+    spotifyWorkerUrl: "https://spotify-worker.rahmad-sains.workers.dev" 
 };
 
 const INTERESTS_DATA = [
@@ -127,22 +129,48 @@ const BLOG_DATA = [
  * ANIMATION ENGINE (Intersection Observer)
  * --------------------------------------------------------------------------
  */
-const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.remove('opacity-0', 'blur-[6px]', 'translate-y-4');
-            entry.target.classList.add('opacity-100', 'blur-0', 'translate-y-0');
-            revealObserver.unobserve(entry.target); // Trigger once only
-        }
-    });
-}, {
-    root: null,
-    threshold: 0.1, // Trigger when 10% visible
-    rootMargin: "0px 0px -50px 0px" // Offset slightly
-});
+// Keep observer reference to disconnect later if needed (though singleton is fine for SPA)
+let revealObserver;
 
-// Helper class for reveal animations
-const REVEAL_CLASS = "opacity-0 blur-[6px] translate-y-4 transition-all duration-[420ms] ease-out";
+const initRevealObserver = () => {
+    if (revealObserver) return; // Prevent duplicates
+
+    revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Remove initial state classes
+                entry.target.classList.remove('opacity-0', 'blur-[6px]', 'translate-y-4');
+                // Add visible state classes
+                entry.target.classList.add('opacity-100', 'blur-0', 'translate-y-0');
+                // IMPORTANT: Stop observing once revealed to save resources
+                revealObserver.unobserve(entry.target); 
+            }
+        });
+    }, {
+        root: null,
+        threshold: 0.1, // Trigger when 10% visible
+        rootMargin: "0px 0px -50px 0px" // Offset slightly for better effect
+    });
+};
+
+const attachRevealObservers = () => {
+    if (!revealObserver) initRevealObserver();
+    
+    // Defer observation to avoid blocking main thread during render
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+            document.querySelectorAll('.reveal-node').forEach(el => revealObserver.observe(el));
+        });
+    } else {
+        // Fallback for Safari/Older browsers
+        setTimeout(() => {
+            document.querySelectorAll('.reveal-node').forEach(el => revealObserver.observe(el));
+        }, 50);
+    }
+};
+
+// Helper class for reveal animations - applied initially to elements
+const REVEAL_CLASS = "opacity-0 blur-[6px] translate-y-4 transition-all duration-[420ms] ease-out will-change-transform";
 
 /**
  * --------------------------------------------------------------------------
@@ -162,9 +190,11 @@ class Store {
             route: initialRoute,
             searchTerm: '',
             filterCategory: 'All',
-            showIntro: true, // [DD(1).JSON] Blocking Intro
+            showIntro: true, 
             isScrolled: false,
-            mobileMenuOpen: false
+            mobileMenuOpen: false,
+            spotifyData: null,
+            isSpotifyLoading: false
         };
         this.listeners = [];
         this.initTheme();
@@ -198,6 +228,8 @@ class Store {
 }
 
 const appStore = new Store();
+
+// Navigation logic separated from Store to keep Store pure
 const navigateTo = (path) => {
     try { window.location.hash = path; } catch (e) { console.warn("Sandbox limitation"); }
     const { page, id } = parseRoute(path);
@@ -210,12 +242,73 @@ const navigateTo = (path) => {
     window.scrollTo(0, 0);
 };
 
+// Global event listeners
 window.addEventListener('scroll', () => {
     const isScrolled = window.scrollY > 20;
     if (isScrolled !== appStore.state.isScrolled) {
         appStore.setState({ isScrolled });
     }
 });
+
+// Keyboard Accessibility
+window.addEventListener('keydown', (e) => {
+    // Only trigger if not typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch(e.key.toLowerCase()) {
+        case 'h': navigateTo('home'); break;
+        case 'p': navigateTo('projects'); break;
+        case 'j': navigateTo('blog'); break;
+        case 'a': navigateTo('about'); break;
+        case 'c': navigateTo('contact'); break;
+    }
+});
+
+/**
+ * --------------------------------------------------------------------------
+ * SPOTIFY WIDGET LOGIC (IMPROVED STABILITY)
+ * --------------------------------------------------------------------------
+ */
+let spotifyInterval = null;
+
+async function loadSpotify() {
+    // Avoid race conditions or redundant calls if already loading
+    if (appStore.state.isSpotifyLoading) return;
+
+    appStore.setState({ isSpotifyLoading: true });
+
+    try {
+        const res = await fetch(SITE_CONFIG.spotifyWorkerUrl);
+        
+        if (!res.ok) throw new Error("Spotify API Error");
+
+        const data = await res.json();
+        
+        // Only update if data changed to avoid unnecessary renders
+        // Using JSON stringify for simple deep comparison
+        if (JSON.stringify(data) !== JSON.stringify(appStore.state.spotifyData)) {
+             appStore.setState({ spotifyData: data, isSpotifyLoading: false });
+        } else {
+             appStore.setState({ isSpotifyLoading: false });
+        }
+
+    } catch (error) {
+        console.warn("Spotify fetch failed:", error);
+        appStore.setState({ spotifyData: null, isSpotifyLoading: false });
+    }
+}
+
+const startSpotifyPolling = () => {
+    if (spotifyInterval) clearInterval(spotifyInterval);
+    loadSpotify(); // Initial load
+    spotifyInterval = setInterval(loadSpotify, 15000);
+};
+
+const stopSpotifyPolling = () => {
+    if (spotifyInterval) clearInterval(spotifyInterval);
+    spotifyInterval = null;
+};
+
 
 /**
  * --------------------------------------------------------------------------
@@ -251,7 +344,8 @@ const getNavbarHTML = (state) => {
         const isActive = state.activeTab === key;
         return `
             <button onclick="navigateTo('${key}')" 
-                class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 relative group 
+                aria-label="Navigate to ${key}"
+                class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 relative group focus:outline-none focus:ring-2 focus:ring-accent-500
                 ${isActive ? 'text-accent-600 dark:text-accent-500 font-bold bg-stone-100 dark:bg-stone-800' : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800/50'}">
                 ${Icons[key]}
                 <span class="capitalize">${key}</span>
@@ -284,7 +378,7 @@ const getNavbarHTML = (state) => {
                         </span>
                         <div class="absolute top-full mt-2 right-0 bg-stone-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">${SITE_CONFIG.status.note}</div>
                     </div>
-                    <button onclick="appStore.toggleTheme()" class="touch-target p-2 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:border-accent-300 dark:hover:border-accent-700 text-stone-500 dark:text-stone-400 transition-all shadow-sm">
+                    <button onclick="appStore.toggleTheme()" class="touch-target p-2 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:border-accent-300 dark:hover:border-accent-700 text-stone-500 dark:text-stone-400 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500">
                         <i data-lucide="${state.theme === 'dark' ? 'sun' : 'moon'}" class="w-4 h-4"></i>
                     </button>
                     <button class="md:hidden touch-target text-stone-600 dark:text-stone-300 p-2" onclick="appStore.toggleMobileMenu()">
@@ -305,7 +399,33 @@ const getNavbarHTML = (state) => {
     `;
 };
 
-const renderHome = () => `
+// Helper for Spotify Render
+const renderSpotifyWidget = (data) => {
+    if (!data || !data.isPlaying) return ''; // Clean exit if no data or not playing
+
+    const percent = (data.progress / data.duration) * 100;
+
+    return `
+        <a href="${data.url}" target="_blank" rel="noopener noreferrer" class="group relative flex items-center gap-4 p-4 rounded-2xl bg-stone-100/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 backdrop-blur-sm max-w-sm mx-auto hover:bg-stone-200 dark:hover:bg-stone-800 transition-all shadow-sm mb-8 ${REVEAL_CLASS} reveal-node">
+            <div class="absolute inset-x-4 bottom-0 h-0.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
+                <div class="h-full bg-[#1db954] w-full origin-left transform scale-x-[${percent/100}] transition-transform duration-1000 ease-linear"></div>
+            </div>
+            <img src="${data.albumArt}" alt="${data.album}" class="w-12 h-12 rounded-lg shadow-sm group-hover:scale-105 transition-transform" />
+            <div class="flex-1 min-w-0 text-left">
+                <p class="text-[10px] font-bold text-[#1db954] uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#1db954] animate-pulse"></span> Now Playing
+                </p>
+                <h4 class="text-sm font-bold text-stone-900 dark:text-white truncate leading-tight">${data.track}</h4>
+                <p class="text-xs text-stone-500 dark:text-stone-400 truncate">${data.artist}</p>
+            </div>
+            <div class="text-stone-400 group-hover:text-[#1db954] transition-colors">
+                <i data-lucide="music" class="w-5 h-5"></i>
+            </div>
+        </a>
+    `;
+};
+
+const renderHome = (state) => `
     <div id="hero-section" class="max-w-4xl mx-auto space-y-20 py-20 px-6 md:px-8">
         <section class="flex flex-col gap-6 text-center items-center z-10 relative ${REVEAL_CLASS} reveal-node">
             <h1 class="text-5xl md:text-7xl font-bold leading-tight text-stone-900 dark:text-stone-100 tracking-tight">
@@ -322,10 +442,15 @@ const renderHome = () => `
                 <a href="https://instagram.com/${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener noreferrer" class="touch-target px-6 py-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 font-bold rounded-full hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Say Hello</a>
             </div>
         </section>
+        
         <section class="${REVEAL_CLASS} reveal-node" style="transition-delay: 120ms">
             <div class="flex flex-col items-center mb-8">
                 <h2 class="text-xs font-bold text-stone-400 uppercase tracking-widest text-center mb-2">Obsessions & Interests</h2>
-                <div class="w-8 h-0.5 bg-accent-500 rounded-full"></div>
+                <div class="w-8 h-0.5 bg-accent-500 rounded-full mb-8"></div>
+                
+                <!-- Spotify Widget: Integrated directly into render flow -->
+                ${renderSpotifyWidget(state.spotifyData)}
+                
             </div>
             <div class="flex flex-wrap justify-center gap-4">
                 ${INTERESTS_DATA.map(item => `
@@ -367,21 +492,45 @@ const renderProjects = () => `
     </div>
 `;
 
+// [UPDATED] Render About with Stacked Photos & Reveal Effect
+// Fix for desktop hover interaction issue
 const renderAbout = () => `
     <div class="max-w-3xl mx-auto space-y-16 py-12 px-6 md:px-8">
         <div class="flex flex-col md:flex-row gap-12 items-center ${REVEAL_CLASS} reveal-node">
+            <!-- 
+               Interactive Image Stack
+               - Desktop (hover:hover): Uses hover to reveal
+               - Mobile (hover:none): Uses click/tap to toggle .reveal class
+            -->
             <div class="relative w-48 h-64 flex-shrink-0 group cursor-pointer perspective-1000" onclick="this.classList.toggle('reveal')">
-                <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Tap to reveal</div>
-                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-200 overflow-hidden transform transition-all duration-500 ease-out group-hover:rotate-6 group-hover:translate-x-12 group-[.reveal]:rotate-6 group-[.reveal]:translate-x-12 origin-bottom-right z-10">
-                    <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-[.reveal]:opacity-100">
+                <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap lg:block hidden">Hover to reveal</div>
+                <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-100 lg:hidden">Tap to reveal</div>
+                
+                <!-- Bottom Photo -->
+                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-200 overflow-hidden transform transition-all duration-500 ease-out 
+                    lg:group-hover:rotate-6 lg:group-hover:translate-x-12 
+                    group-[.reveal]:rotate-6 group-[.reveal]:translate-x-12 
+                    origin-bottom-right z-10">
+                    <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 lg:group-hover:opacity-100 group-[.reveal]:opacity-100">
                 </div>
-                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-300 overflow-hidden transform transition-all duration-500 ease-out group-hover:-rotate-6 group-hover:-translate-x-12 group-[.reveal]:-rotate-6 group-[.reveal]:-translate-x-12 origin-bottom-left z-0">
-                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-[.reveal]:opacity-100">
+                
+                <!-- Middle Photo -->
+                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-300 overflow-hidden transform transition-all duration-500 ease-out 
+                    lg:group-hover:-rotate-6 lg:group-hover:-translate-x-12 
+                    group-[.reveal]:-rotate-6 group-[.reveal]:-translate-x-12 
+                    origin-bottom-left z-0">
+                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 lg:group-hover:opacity-100 group-[.reveal]:opacity-100">
                 </div>
-                <div class="relative w-full h-full rounded-2xl shadow-xl border-4 border-white dark:border-stone-800 bg-stone-100 overflow-hidden transform transition-all duration-500 group-hover:-translate-y-4 group-[.reveal]:-translate-y-4 z-20">
+                
+                <!-- Top Photo -->
+                <div class="relative w-full h-full rounded-2xl shadow-xl border-4 border-white dark:border-stone-800 bg-stone-100 overflow-hidden transform transition-all duration-500 
+                    lg:group-hover:-translate-y-4 
+                    group-[.reveal]:-translate-y-4 
+                    z-20">
                     <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover">
                 </div>
             </div>
+            
             <div class="prose prose-stone dark:prose-invert prose-lg text-left">
                 <h2 class="text-3xl font-bold text-stone-900 dark:text-white mb-4">Just a Student.</h2>
                 <div class="w-10 h-0.5 bg-accent-500 rounded-full mb-6"></div>
@@ -389,6 +538,7 @@ const renderAbout = () => `
                 <p class="text-lg text-stone-600 dark:text-stone-300 leading-relaxed">My goal right now is simple: Learn as much as I can, graduate, and maybe build something useful along the way.</p>
             </div>
         </div>
+        
         <div class="border-t border-stone-200 dark:border-stone-800 pt-8 ${REVEAL_CLASS} reveal-node">
             <h3 class="text-sm font-bold text-stone-900 dark:text-white uppercase tracking-widest mb-6 text-left">People I Look Up To</h3>
             <div class="grid gap-4">
@@ -495,9 +645,65 @@ const renderFooter = () => `
 
 /**
  * --------------------------------------------------------------------------
- * APP BOOTSTRAP
+ * APP BOOTSTRAP (REFACTORED ARCHITECTURE)
  * --------------------------------------------------------------------------
  */
+
+const renderNavbar = (state, mounts) => {
+    mounts.navbar.innerHTML = getNavbarHTML(state);
+}
+
+const renderMain = (state, mounts) => {
+    const { page, id } = state.route;
+    let mainHTML = '';
+    switch(page) {
+        case 'home': mainHTML = renderHome(state); break; // Pass state to home
+        case 'projects': mainHTML = renderProjects(); break;
+        case 'about': mainHTML = renderAbout(); break;
+        case 'blog': mainHTML = id ? renderBlogDetail(id) : renderBlog(state); break;
+        case 'contact': mainHTML = renderContact(); break;
+        default: mainHTML = renderHome(state);
+    }
+    mounts.main.innerHTML = mainHTML;
+    
+    // Re-attach listeners after DOM update
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => appStore.setState({ searchTerm: e.target.value }));
+        if (state.searchTerm) {
+            searchInput.focus();
+            const val = searchInput.value; searchInput.value = ''; searchInput.value = val;
+        }
+    }
+    const catBtns = document.querySelectorAll('.category-btn');
+    catBtns.forEach(btn => {
+        btn.addEventListener('click', () => appStore.setState({ filterCategory: btn.dataset.cat }));
+    });
+
+    // Attach reveal observers to new content
+    attachRevealObservers();
+}
+
+const handleIntroScreen = (state, mounts) => {
+    if (state.showIntro) {
+        if (!document.getElementById('intro-screen')) {
+            const introDiv = document.createElement('div');
+            introDiv.innerHTML = renderIntro();
+            mounts.app.appendChild(introDiv.firstElementChild);
+            
+            setTimeout(() => {
+                const introEl = document.getElementById('intro-screen');
+                if (introEl) {
+                    introEl.style.opacity = '0';
+                    setTimeout(() => {
+                        introEl.remove();
+                        appStore.setState({ showIntro: false });
+                    }, 500); 
+                }
+            }, 1800);
+        }
+    }
+}
 
 const renderApp = (state, oldState) => {
     const mounts = {
@@ -507,77 +713,43 @@ const renderApp = (state, oldState) => {
         app: document.getElementById('app')
     };
 
-    // [DD(1).JSON] Blocking Intro Screen Logic
-    if (state.showIntro) {
-        // If intro active, check if element exists, if not render it
-        if (!document.getElementById('intro-screen')) {
-            const introDiv = document.createElement('div');
-            introDiv.innerHTML = renderIntro();
-            mounts.app.appendChild(introDiv.firstElementChild);
-            
-            // Auto dismiss logic after 1.8s
-            setTimeout(() => {
-                const introEl = document.getElementById('intro-screen');
-                if (introEl) {
-                    introEl.style.opacity = '0';
-                    setTimeout(() => {
-                        introEl.remove();
-                        appStore.setState({ showIntro: false });
-                    }, 500); // Fade out duration
-                }
-            }, 1800);
-        }
-        // Don't render main app content yet to improve performance or just let it render behind
-    }
+    // 1. Handle Intro Logic
+    handleIntroScreen(state, mounts);
 
-    // 1. Navbar
+    // 2. Navbar: Render if dependent state changes
     if (!oldState || state.activeTab !== oldState.activeTab || state.isScrolled !== oldState.isScrolled || state.theme !== oldState.theme || state.mobileMenuOpen !== oldState.mobileMenuOpen) {
-        mounts.navbar.innerHTML = getNavbarHTML(state);
+        renderNavbar(state, mounts);
     }
 
-    // 2. Main Content
-    if (!oldState || state.activeTab !== oldState.activeTab || state.route.id !== oldState.route.id || state.filterCategory !== oldState.filterCategory || state.searchTerm !== oldState.searchTerm) {
-        const { page, id } = state.route;
-        let mainHTML = '';
-        switch(page) {
-            case 'home': mainHTML = renderHome(); break;
-            case 'projects': mainHTML = renderProjects(); break;
-            case 'about': mainHTML = renderAbout(); break;
-            case 'blog': mainHTML = id ? renderBlogDetail(id) : renderBlog(state); break;
-            case 'contact': mainHTML = renderContact(); break;
-            default: mainHTML = renderHome();
-        }
-        mounts.main.innerHTML = mainHTML;
+    // 3. Main Content: Render if routing or data filtering changes
+    if (!oldState || state.activeTab !== oldState.activeTab || state.route.id !== oldState.route.id || state.filterCategory !== oldState.filterCategory || state.searchTerm !== oldState.searchTerm || state.spotifyData !== oldState.spotifyData) {
+        renderMain(state, mounts);
         
-        // Setup Search Listener
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => appStore.setState({ searchTerm: e.target.value }));
-            if (state.searchTerm) {
-                searchInput.focus();
-                const val = searchInput.value; searchInput.value = ''; searchInput.value = val;
-            }
+        // Trigger loadSpotify when entering home
+        if (state.route.page === 'home') {
+            startSpotifyPolling();
+        } else {
+            stopSpotifyPolling(); // Stop polling when leaving home
         }
-        const catBtns = document.querySelectorAll('.category-btn');
-        catBtns.forEach(btn => {
-            btn.addEventListener('click', () => appStore.setState({ filterCategory: btn.dataset.cat }));
-        });
-
-        // [DD(1).JSON] Re-attach Intersection Observer to new elements
-        document.querySelectorAll('.reveal-node').forEach(el => revealObserver.observe(el));
     }
 
-    // 3. Footer
+    // 4. Footer: Render once
     if (!oldState) {
         mounts.footer.innerHTML = renderFooter();
     }
 
-    // Remove Initial Loader if present (handled by Intro now, but safe to keep)
+    // 5. Initial Loader Clean up
     const loader = document.getElementById('initial-loader');
-    if (loader) loader.remove();
+    if (loader && !state.isLoading) loader.remove();
+    // Force remove if intro is done
+    if (loader && !state.showIntro) loader.remove();
 
-    // Init icons
-    lucide.createIcons();
+    // Init icons via requestIdleCallback for performance
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => lucide.createIcons());
+    } else {
+        lucide.createIcons();
+    }
 };
 
 // Initialize
@@ -591,4 +763,9 @@ window.addEventListener('hashchange', () => {
 });
 
 // Start
+// Manually handle loading state removal after initial render sequence
+setTimeout(() => {
+    appStore.setState({ isLoading: false });
+}, 100); // Quick state update to remove static loader since intro handles it
+
 renderApp(appStore.state);
