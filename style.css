@@ -8,7 +8,7 @@
 /* Skala Tipografi (Mobile First) */
 /* Mengatur ukuran font dasar berdasarkan lebar layar */
 html { font-size: 14px; } 
-@media (min-width: 360px) { html { font-size: 15px; } } 
+@media (min-width: 360px) { html { font-size: 16px; } } 
 @media (min-width: 400px) { html { font-size: 16px; } } 
 
 body { 
@@ -41,7 +41,7 @@ body {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: 0; /* AMAN: Di bawah konten */
-    opacity: 0.4;
+    opacity: 0.3;
 }
 
 /* Kebijakan Target Sentuh (Min 44px) untuk Mobile */
