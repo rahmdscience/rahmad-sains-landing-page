@@ -103,10 +103,3 @@ All media content belongs to the author unless stated otherwise.
 
 ---
 
-Kalau mau next step:
-- README versi **lebih profesional (portfolio-ready)**
-- README **ringkas 1 halaman**
-- atau **tambahin screenshot preview di README**
-
-tinggal bilang.
-```
