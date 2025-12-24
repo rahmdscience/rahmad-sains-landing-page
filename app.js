@@ -9,7 +9,7 @@ const SITE_CONFIG = {
     status: {
         label: "School Holiday",
         state: "holiday",
-        note: "Manually updated by Rahmad"
+        note: "Manually updated by Rahmad Sains"
     },
     social: {
         email: "rsainsalhafidz@gmail.com",
@@ -26,7 +26,8 @@ const TECH_STACK_DATA = [
     { label: "Browser", value: "Zen Browser" },
     { label: "Keyboard", value: "Vortex Mono 75%" },
     { label: "Gamepad", value: "8BitDo Ultimate 2C" },
-    { label: "Main Device", value: "Acer (Laptop) & Samsung (HP)" }
+    { label: "Main Device", value: "Acer & Samsung" },
+    { label: "Storage", value: "Adata" }
 ];
 
 const INTERESTS_DATA = [
@@ -40,7 +41,7 @@ const INTERESTS_DATA = [
 const IDOLS_DATA = [
     { name: "Cristiano Ronaldo", role: "Al Nassr", icon: "⚽", link: "https://www.transfermarkt.com/cristiano-ronaldo/profil/spieler/8198" },
     { name: "Max Verstappen", role: "Red Bull Racing", icon: "🏎️", link: "https://www.formula1.com/en/drivers/max-verstappen.html" },
-    { name: "Carlos Sainz", role: "Williams", icon: "🌶️", note: "Name similarity!", link: "https://www.formula1.com/en/drivers/carlos-sainz.html" }
+    { name: "Carlos Sainz", role: "Williams", icon: "🏎️", note: "Name similarity!", link: "https://www.formula1.com/en/drivers/carlos-sainz.html" }
 ];
 
 const PROJECTS_DATA = [
@@ -88,7 +89,7 @@ const BLOG_DATA = [
         title: "Why I Idolise Max Verstappen?",
         category: "Motorsports",
         mood: "Analysis",
-        date: "23 Dec 2024",
+        date: "23 Dec 2025",
         readTime: "4 min",
         pinned: true, 
         excerpt: "It's not just about the speed. It's about the relentless mentality to be P1 every single session.",
@@ -103,7 +104,7 @@ const BLOG_DATA = [
         title: "Balancing School and Code",
         category: "Coding",
         mood: "Reflection",
-        date: "10 Dec 2024",
+        date: "10 Dec 2025",
         readTime: "3 min",
         excerpt: "Chemical equations in the morning, React components at night. The chaotic life of a Grade 12 student.",
         content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.
@@ -115,7 +116,7 @@ const BLOG_DATA = [
         title: "Real Madrid 2012: The Perfect Counter",
         category: "Football",
         mood: "Opinion",
-        date: "05 Nov 2024",
+        date: "05 Nov 2025",
         readTime: "5 min",
         excerpt: "Mourinho's Madrid was efficient, direct, and ruthless. A tactical analysis from a fan's perspective.",
         content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.
@@ -127,7 +128,7 @@ const BLOG_DATA = [
         title: "My Coffee Routine",
         category: "Coffee & Thoughts",
         mood: "Chill",
-        date: "01 Nov 2024",
+        date: "01 Nov 2025",
         readTime: "2 min",
         excerpt: "Why I switched to manual brew and how it helps me think clearly before starting homework.",
         content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.`
@@ -380,7 +381,7 @@ const renderHome = (state) => `
             <!-- [DDDDDD.JSON] Easter Egg Interaction -->
             <div onclick="appStore.triggerEasterEgg()" class="cursor-pointer group select-none">
                 <h1 class="text-5xl md:text-7xl font-bold leading-tight text-stone-900 dark:text-stone-100 tracking-tight transition-transform group-active:scale-95">
-                    Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">Rahmad
+                    Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">Rahmad Sains
                         <svg class="absolute w-full h-3 -bottom-1 left-0 text-accent-200 dark:text-accent-800 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" /></svg>
                     </span>.
                 </h1>
