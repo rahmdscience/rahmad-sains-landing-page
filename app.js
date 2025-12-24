@@ -1,6 +1,6 @@
 /**
  * --------------------------------------------------------------------------
- * DATA LAYER (Updated per dd(1).json)
+ * DATA LAYER (Updated per dddddd.json)
  * --------------------------------------------------------------------------
  */
 const SITE_CONFIG = {
@@ -15,9 +15,19 @@ const SITE_CONFIG = {
         email: "rsainsalhafidz@gmail.com",
         instagram: "rahmdsai"
     },
-    // Using the worker URL provided
-    spotifyWorkerUrl: "https://spotify-worker.rahmad-sains.workers.dev" 
+    // Easter Egg Quote
+    quote: "Stay curious, stay humble."
 };
+
+const TECH_STACK_DATA = [
+    { label: "OS", value: "Linux" },
+    { label: "Distro", value: "EndeavourOS (Arch Based)" },
+    { label: "Display Server", value: "Wayland" },
+    { label: "Browser", value: "Zen Browser" },
+    { label: "Keyboard", value: "Vortex Mono 75%" },
+    { label: "Gamepad", value: "8BitDo Ultimate 2C" },
+    { label: "Main Device", value: "Acer (Laptop) & Samsung (HP)" }
+];
 
 const INTERESTS_DATA = [
     { id: "motorsports", label: "Motorsports", icon: "flag", desc: "F1 & Racing Culture", rotation: "-2deg" },
@@ -129,47 +139,39 @@ const BLOG_DATA = [
  * ANIMATION ENGINE (Intersection Observer)
  * --------------------------------------------------------------------------
  */
-// Keep observer reference to disconnect later if needed (though singleton is fine for SPA)
 let revealObserver;
 
 const initRevealObserver = () => {
-    if (revealObserver) return; // Prevent duplicates
+    if (revealObserver) return; 
 
     revealObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                // Remove initial state classes
                 entry.target.classList.remove('opacity-0', 'blur-[6px]', 'translate-y-4');
-                // Add visible state classes
                 entry.target.classList.add('opacity-100', 'blur-0', 'translate-y-0');
-                // IMPORTANT: Stop observing once revealed to save resources
                 revealObserver.unobserve(entry.target); 
             }
         });
     }, {
         root: null,
-        threshold: 0.1, // Trigger when 10% visible
-        rootMargin: "0px 0px -50px 0px" // Offset slightly for better effect
+        threshold: 0.1, 
+        rootMargin: "0px 0px -50px 0px"
     });
 };
 
 const attachRevealObservers = () => {
     if (!revealObserver) initRevealObserver();
-    
-    // Defer observation to avoid blocking main thread during render
     if ('requestIdleCallback' in window) {
         requestIdleCallback(() => {
             document.querySelectorAll('.reveal-node').forEach(el => revealObserver.observe(el));
         });
     } else {
-        // Fallback for Safari/Older browsers
         setTimeout(() => {
             document.querySelectorAll('.reveal-node').forEach(el => revealObserver.observe(el));
         }, 50);
     }
 };
 
-// Helper class for reveal animations - applied initially to elements
 const REVEAL_CLASS = "opacity-0 blur-[6px] translate-y-4 transition-all duration-[420ms] ease-out will-change-transform";
 
 /**
@@ -193,8 +195,7 @@ class Store {
             showIntro: true, 
             isScrolled: false,
             mobileMenuOpen: false,
-            spotifyData: null,
-            isSpotifyLoading: false
+            easterEggRevealed: false // [DDDDDD.JSON] Easter Egg State
         };
         this.listeners = [];
         this.initTheme();
@@ -217,6 +218,9 @@ class Store {
     toggleMobileMenu() {
         this.setState({ mobileMenuOpen: !this.state.mobileMenuOpen });
     }
+    triggerEasterEgg() {
+        this.setState({ easterEggRevealed: !this.state.easterEggRevealed });
+    }
     addVisitedTab(tab) {
         if (tab === 'blog-detail') return;
         const newSet = new Set(this.state.visitedTabs);
@@ -229,7 +233,6 @@ class Store {
 
 const appStore = new Store();
 
-// Navigation logic separated from Store to keep Store pure
 const navigateTo = (path) => {
     try { window.location.hash = path; } catch (e) { console.warn("Sandbox limitation"); }
     const { page, id } = parseRoute(path);
@@ -242,7 +245,6 @@ const navigateTo = (path) => {
     window.scrollTo(0, 0);
 };
 
-// Global event listeners
 window.addEventListener('scroll', () => {
     const isScrolled = window.scrollY > 20;
     if (isScrolled !== appStore.state.isScrolled) {
@@ -252,9 +254,7 @@ window.addEventListener('scroll', () => {
 
 // Keyboard Accessibility
 window.addEventListener('keydown', (e) => {
-    // Only trigger if not typing in an input
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
     switch(e.key.toLowerCase()) {
         case 'h': navigateTo('home'); break;
         case 'p': navigateTo('projects'); break;
@@ -263,52 +263,6 @@ window.addEventListener('keydown', (e) => {
         case 'c': navigateTo('contact'); break;
     }
 });
-
-/**
- * --------------------------------------------------------------------------
- * SPOTIFY WIDGET LOGIC (IMPROVED STABILITY)
- * --------------------------------------------------------------------------
- */
-let spotifyInterval = null;
-
-async function loadSpotify() {
-    // Avoid race conditions or redundant calls if already loading
-    if (appStore.state.isSpotifyLoading) return;
-
-    appStore.setState({ isSpotifyLoading: true });
-
-    try {
-        const res = await fetch(SITE_CONFIG.spotifyWorkerUrl);
-        
-        if (!res.ok) throw new Error("Spotify API Error");
-
-        const data = await res.json();
-        
-        // Only update if data changed to avoid unnecessary renders
-        // Using JSON stringify for simple deep comparison
-        if (JSON.stringify(data) !== JSON.stringify(appStore.state.spotifyData)) {
-             appStore.setState({ spotifyData: data, isSpotifyLoading: false });
-        } else {
-             appStore.setState({ isSpotifyLoading: false });
-        }
-
-    } catch (error) {
-        console.warn("Spotify fetch failed:", error);
-        appStore.setState({ spotifyData: null, isSpotifyLoading: false });
-    }
-}
-
-const startSpotifyPolling = () => {
-    if (spotifyInterval) clearInterval(spotifyInterval);
-    loadSpotify(); // Initial load
-    spotifyInterval = setInterval(loadSpotify, 15000);
-};
-
-const stopSpotifyPolling = () => {
-    if (spotifyInterval) clearInterval(spotifyInterval);
-    spotifyInterval = null;
-};
-
 
 /**
  * --------------------------------------------------------------------------
@@ -323,7 +277,7 @@ const Icons = {
     contact: `<i data-lucide="mail" class="w-4 h-4"></i>`
 };
 
-// [DD(1).JSON] Intro Screen Component
+// [DDDDDD.JSON] Intro Screen Component
 const renderIntro = () => `
     <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-stone-950 text-white transition-opacity duration-500" id="intro-screen">
         <div class="space-y-6 text-center w-64">
@@ -339,13 +293,14 @@ const renderIntro = () => `
     </div>
 `;
 
+// [DDDDDD.JSON] Navbar: Fullscreen Mobile Menu
 const getNavbarHTML = (state) => {
     const navLinks = Object.keys(Icons).map(key => {
         const isActive = state.activeTab === key;
         return `
             <button onclick="navigateTo('${key}')" 
                 aria-label="Navigate to ${key}"
-                class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 relative group focus:outline-none focus:ring-2 focus:ring-accent-500
+                class="active:scale-95 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 relative group focus:outline-none focus:ring-2 focus:ring-accent-500
                 ${isActive ? 'text-accent-600 dark:text-accent-500 font-bold bg-stone-100 dark:bg-stone-800' : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800/50'}">
                 ${Icons[key]}
                 <span class="capitalize">${key}</span>
@@ -359,99 +314,108 @@ const getNavbarHTML = (state) => {
     return `
         <div class="w-full backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-6 md:px-8 transition-all duration-300 ${paddingClass} ${bgClass}">
             <div class="w-full flex justify-between items-center relative">
-                <div class="flex items-center gap-3 justify-start cursor-pointer group touch-target" onclick="navigateTo('home')">
+                <div class="flex items-center gap-3 justify-start cursor-pointer group active:scale-95 transition-transform" onclick="navigateTo('home')">
                     <div class="w-9 h-9 overflow-hidden rounded-full border border-stone-200 dark:border-stone-800 group-hover:border-accent-500 transition-colors">
                         <div class="w-full h-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-xs font-bold text-stone-700 dark:text-stone-300">RS</div> 
                     </div>
                     <span class="font-bold text-lg text-stone-900 dark:text-stone-100 tracking-tight">Rahmad<span class="text-stone-400">Sains</span></span>
                 </div>
+                
                 <div class="hidden md:flex justify-center absolute left-1/2 -translate-x-1/2">
                     <div class="flex items-center bg-white dark:bg-stone-900 px-1.5 py-1.5 rounded-full border border-stone-200 dark:border-stone-800 shadow-sm gap-1">
                         ${navLinks}
                     </div>
                 </div>
+                
                 <div class="flex items-center justify-end gap-3">
-                    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-stone-900 rounded-full border border-stone-200 dark:border-stone-800 cursor-help group relative shadow-sm">
-                        <span class="relative flex h-2 w-2">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${SITE_CONFIG.status.state === 'holiday' ? 'bg-green-400' : 'bg-red-400'} opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-2 w-2 ${SITE_CONFIG.status.state === 'holiday' ? 'bg-green-500' : 'bg-red-500'}"></span>
-                        </span>
-                        <div class="absolute top-full mt-2 right-0 bg-stone-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">${SITE_CONFIG.status.note}</div>
-                    </div>
-                    <button onclick="appStore.toggleTheme()" class="touch-target p-2 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:border-accent-300 dark:hover:border-accent-700 text-stone-500 dark:text-stone-400 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500">
+                    <button onclick="appStore.toggleTheme()" class="active:scale-95 p-2 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:border-accent-300 dark:hover:border-accent-700 text-stone-500 dark:text-stone-400 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500">
                         <i data-lucide="${state.theme === 'dark' ? 'sun' : 'moon'}" class="w-4 h-4"></i>
                     </button>
-                    <button class="md:hidden touch-target text-stone-600 dark:text-stone-300 p-2" onclick="appStore.toggleMobileMenu()">
+                    
+                    <button class="md:hidden active:scale-95 text-stone-600 dark:text-stone-300 p-2" onclick="appStore.toggleMobileMenu()">
                         <i data-lucide="${state.mobileMenuOpen ? 'x' : 'menu'}" class="w-6 h-6"></i>
                     </button>
                 </div>
             </div>
+
+            <!-- [DDDDDD.JSON] Mobile Full Screen Menu -->
             ${state.mobileMenuOpen ? `
-                <div class="absolute top-full right-4 mt-2 w-56 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl p-2 flex flex-col gap-1 z-50 animate-dropdown mobile-dropdown">
-                    ${Object.keys(Icons).map(key => `
-                        <button onclick="navigateTo('${key}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 text-left transition-colors ${state.activeTab === key ? 'bg-stone-100 dark:bg-stone-800 text-accent-600 dark:text-accent-500 font-bold' : 'text-stone-600 dark:text-stone-300'}">
-                            ${Icons[key]} <span class="capitalize text-sm">${key}</span>
-                        </button>
-                    `).join('')}
+                <div class="fixed inset-0 z-50 bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center animate-fade-in md:hidden">
+                    <button class="absolute top-6 right-6 p-4 text-stone-600 dark:text-stone-300" onclick="appStore.toggleMobileMenu()">
+                        <i data-lucide="x" class="w-8 h-8"></i>
+                    </button>
+                    
+                    <div class="flex flex-col gap-6 text-center">
+                        ${Object.keys(Icons).map(key => `
+                            <button onclick="navigateTo('${key}')" class="text-3xl font-bold text-stone-900 dark:text-white capitalize hover:text-accent-500 transition-colors">
+                                ${key}
+                            </button>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="mt-12 text-sm text-stone-500 font-medium">
+                        ${SITE_CONFIG.status.label} <span class="ml-2 ${SITE_CONFIG.status.state === 'holiday' ? 'text-green-500' : 'text-red-500'}">●</span>
+                    </div>
                 </div>
             ` : ''}
         </div>
     `;
 };
 
-// Helper for Spotify Render
-const renderSpotifyWidget = (data) => {
-    if (!data || !data.isPlaying) return ''; // Clean exit if no data or not playing
-
-    const percent = (data.progress / data.duration) * 100;
-
-    return `
-        <a href="${data.url}" target="_blank" rel="noopener noreferrer" class="group relative flex items-center gap-4 p-4 rounded-2xl bg-stone-100/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 backdrop-blur-sm max-w-sm mx-auto hover:bg-stone-200 dark:hover:bg-stone-800 transition-all shadow-sm mb-8 ${REVEAL_CLASS} reveal-node">
-            <div class="absolute inset-x-4 bottom-0 h-0.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
-                <div class="h-full bg-[#1db954] w-full origin-left transform scale-x-[${percent/100}] transition-transform duration-1000 ease-linear"></div>
+// [DDDDDD.JSON] Tech Stack Component
+const renderTechStack = () => `
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+        ${TECH_STACK_DATA.map(item => `
+            <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-3 shadow-sm hover:border-accent-500/50 transition-colors cursor-default">
+                <span class="block text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-1">${item.label}</span>
+                <span class="block text-xs font-medium text-stone-800 dark:text-stone-200 truncate">${item.value}</span>
             </div>
-            <img src="${data.albumArt}" alt="${data.album}" class="w-12 h-12 rounded-lg shadow-sm group-hover:scale-105 transition-transform" />
-            <div class="flex-1 min-w-0 text-left">
-                <p class="text-[10px] font-bold text-[#1db954] uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#1db954] animate-pulse"></span> Now Playing
-                </p>
-                <h4 class="text-sm font-bold text-stone-900 dark:text-white truncate leading-tight">${data.track}</h4>
-                <p class="text-xs text-stone-500 dark:text-stone-400 truncate">${data.artist}</p>
-            </div>
-            <div class="text-stone-400 group-hover:text-[#1db954] transition-colors">
-                <i data-lucide="music" class="w-5 h-5"></i>
-            </div>
-        </a>
-    `;
-};
+        `).join('')}
+    </div>
+`;
 
 const renderHome = (state) => `
     <div id="hero-section" class="max-w-4xl mx-auto space-y-20 py-20 px-6 md:px-8">
         <section class="flex flex-col gap-6 text-center items-center z-10 relative ${REVEAL_CLASS} reveal-node">
-            <h1 class="text-5xl md:text-7xl font-bold leading-tight text-stone-900 dark:text-stone-100 tracking-tight">
-                Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">Rahmad
-                    <svg class="absolute w-full h-3 -bottom-1 left-0 text-accent-200 dark:text-accent-800 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" /></svg>
-                </span>.
-            </h1>
+            <!-- [DDDDDD.JSON] Easter Egg Interaction -->
+            <div onclick="appStore.triggerEasterEgg()" class="cursor-pointer group select-none">
+                <h1 class="text-5xl md:text-7xl font-bold leading-tight text-stone-900 dark:text-stone-100 tracking-tight transition-transform group-active:scale-95">
+                    Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">Rahmad
+                        <svg class="absolute w-full h-3 -bottom-1 left-0 text-accent-200 dark:text-accent-800 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" /></svg>
+                    </span>.
+                </h1>
+                <p class="h-6 text-sm font-medium text-accent-600 dark:text-accent-400 mt-2 transition-opacity duration-300 ${state.easterEggRevealed ? 'opacity-100' : 'opacity-0'}">
+                    "${SITE_CONFIG.quote}"
+                </p>
+            </div>
+
             <p class="text-lg md:text-xl text-stone-600 dark:text-stone-300 font-medium italic font-serif">"I write and build to understand, not to impress."</p>
             <p class="text-base text-stone-500 dark:text-stone-400 max-w-lg leading-relaxed font-light">
                 A Grade 12 student exploring the web, one <code class="bg-stone-200 dark:bg-stone-800 px-1 py-0.5 rounded text-sm font-mono text-stone-700 dark:text-stone-300">&lt;div&gt;</code> at a time.
             </p>
+            
             <div class="flex flex-wrap gap-4 mt-6 justify-center">
-                <button onclick="navigateTo('projects')" class="touch-target px-6 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-bold rounded-full hover:bg-accent-600 dark:hover:bg-accent-500 hover:text-white dark:hover:text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-1">See My Work</button>
-                <a href="https://instagram.com/${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener noreferrer" class="touch-target px-6 py-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 font-bold rounded-full hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Say Hello</a>
+                <button onclick="navigateTo('projects')" class="active:scale-95 touch-target px-6 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-bold rounded-full hover:bg-accent-600 dark:hover:bg-accent-500 hover:text-white dark:hover:text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-1">See My Work</button>
+                <a href="https://instagram.com/${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener noreferrer" class="active:scale-95 touch-target px-6 py-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 font-bold rounded-full hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Say Hello</a>
             </div>
         </section>
         
         <section class="${REVEAL_CLASS} reveal-node" style="transition-delay: 120ms">
+            <!-- Setup & Gear (Tech Stack) -->
+            <div class="mb-16">
+                <div class="flex items-center justify-center gap-4 mb-6">
+                    <div class="h-px bg-stone-200 dark:bg-stone-800 flex-1"></div>
+                    <h2 class="text-xs font-bold text-stone-400 uppercase tracking-widest">Setup & Gear</h2>
+                    <div class="h-px bg-stone-200 dark:bg-stone-800 flex-1"></div>
+                </div>
+                ${renderTechStack()}
+            </div>
+
             <div class="flex flex-col items-center mb-8">
                 <h2 class="text-xs font-bold text-stone-400 uppercase tracking-widest text-center mb-2">Obsessions & Interests</h2>
                 <div class="w-8 h-0.5 bg-accent-500 rounded-full mb-8"></div>
-                
-                <!-- Spotify Widget: Integrated directly into render flow -->
-                ${renderSpotifyWidget(state.spotifyData)}
-                
             </div>
+            
             <div class="flex flex-wrap justify-center gap-4">
                 ${INTERESTS_DATA.map(item => `
                     <div class="hover-rotate-random flex items-center gap-2 px-5 py-3 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm hover:border-accent-400 hover:shadow-md transition-all cursor-default" style="--rotation: ${item.rotation}">
@@ -483,7 +447,7 @@ const renderProjects = () => `
                     <div class="mt-auto mb-6 p-3 bg-stone-50 dark:bg-stone-950/50 rounded-xl border border-stone-100 dark:border-stone-800/50">
                         <p class="text-xs text-stone-500 dark:text-stone-400"><strong class="text-stone-700 dark:text-stone-300">Learning:</strong> ${project.learning}</p>
                     </div>
-                    <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="touch-target mt-2 w-full py-3 bg-stone-100 dark:bg-stone-800 rounded-xl text-stone-900 dark:text-white text-sm font-bold flex items-center justify-center gap-2 group-hover:bg-accent-500 group-hover:text-white transition-all">
+                    <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="active:scale-95 touch-target mt-2 w-full py-3 bg-stone-100 dark:bg-stone-800 rounded-xl text-stone-900 dark:text-white text-sm font-bold flex items-center justify-center gap-2 group-hover:bg-accent-500 group-hover:text-white transition-all">
                         Visit Site <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
                     </a>
                 </div>
@@ -492,21 +456,13 @@ const renderProjects = () => `
     </div>
 `;
 
-// [UPDATED] Render About with Stacked Photos & Reveal Effect
-// Fix for desktop hover interaction issue
 const renderAbout = () => `
     <div class="max-w-3xl mx-auto space-y-16 py-12 px-6 md:px-8">
         <div class="flex flex-col md:flex-row gap-12 items-center ${REVEAL_CLASS} reveal-node">
-            <!-- 
-               Interactive Image Stack
-               - Desktop (hover:hover): Uses hover to reveal
-               - Mobile (hover:none): Uses click/tap to toggle .reveal class
-            -->
             <div class="relative w-48 h-64 flex-shrink-0 group cursor-pointer perspective-1000" onclick="this.classList.toggle('reveal')">
                 <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap lg:block hidden">Hover to reveal</div>
                 <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-100 lg:hidden">Tap to reveal</div>
                 
-                <!-- Bottom Photo -->
                 <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-200 overflow-hidden transform transition-all duration-500 ease-out 
                     lg:group-hover:rotate-6 lg:group-hover:translate-x-12 
                     group-[.reveal]:rotate-6 group-[.reveal]:translate-x-12 
@@ -514,7 +470,6 @@ const renderAbout = () => `
                     <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 lg:group-hover:opacity-100 group-[.reveal]:opacity-100">
                 </div>
                 
-                <!-- Middle Photo -->
                 <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-300 overflow-hidden transform transition-all duration-500 ease-out 
                     lg:group-hover:-rotate-6 lg:group-hover:-translate-x-12 
                     group-[.reveal]:-rotate-6 group-[.reveal]:-translate-x-12 
@@ -522,7 +477,6 @@ const renderAbout = () => `
                     <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 lg:group-hover:opacity-100 group-[.reveal]:opacity-100">
                 </div>
                 
-                <!-- Top Photo -->
                 <div class="relative w-full h-full rounded-2xl shadow-xl border-4 border-white dark:border-stone-800 bg-stone-100 overflow-hidden transform transition-all duration-500 
                     lg:group-hover:-translate-y-4 
                     group-[.reveal]:-translate-y-4 
@@ -543,7 +497,7 @@ const renderAbout = () => `
             <h3 class="text-sm font-bold text-stone-900 dark:text-white uppercase tracking-widest mb-6 text-left">People I Look Up To</h3>
             <div class="grid gap-4">
                 ${IDOLS_DATA.map(idol => `
-                    <a href="${idol.link}" target="_blank" rel="noopener noreferrer" class="touch-target flex items-center justify-between p-4 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 hover:border-accent-500/50 transition-colors group">
+                    <a href="${idol.link}" target="_blank" rel="noopener noreferrer" class="active:scale-95 touch-target flex items-center justify-between p-4 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 hover:border-accent-500/50 transition-colors group">
                         <div class="flex items-center gap-4"><span class="text-3xl grayscale group-hover:grayscale-0 transition-all duration-300">${idol.icon}</span><div><h4 class="font-bold text-stone-900 dark:text-white group-hover:text-accent-600 transition-colors">${idol.name}</h4><p class="text-xs text-stone-500">${idol.role}</p></div></div>
                         <i data-lucide="external-link" class="w-4 h-4 text-stone-300 group-hover:text-accent-500"></i>
                     </a>
@@ -571,13 +525,13 @@ const renderBlog = (state) => {
                 <div class="mt-8 space-y-4">
                     <input type="text" placeholder="Search..." id="search-input" value="${state.searchTerm}" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl py-3 px-4 focus:ring-2 focus:ring-accent-500 focus:border-transparent outline-none transition-shadow text-sm dark:text-white">
                     <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                        ${categories.map(cat => `<button data-cat="${cat}" class="category-btn touch-target px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap border ${state.filterCategory === cat ? 'bg-stone-800 dark:bg-stone-200 text-white dark:text-stone-900 border-transparent' : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'}">${cat}</button>`).join('')}
+                        ${categories.map(cat => `<button data-cat="${cat}" class="category-btn active:scale-95 touch-target px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap border ${state.filterCategory === cat ? 'bg-stone-800 dark:bg-stone-200 text-white dark:text-stone-900 border-transparent' : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'}">${cat}</button>`).join('')}
                     </div>
                 </div>
             </div>
             <div class="space-y-4">
                 ${filteredPosts.length > 0 ? filteredPosts.map((post, idx) => `
-                    <div onclick="navigateTo('blog/${post.id}')" class="group block p-6 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 hover:border-accent-500/50 cursor-pointer transition-all ${post.pinned ? 'ring-1 ring-accent-200 dark:ring-accent-900 bg-accent-50/50 dark:bg-accent-900/10' : ''} ${REVEAL_CLASS} reveal-node" style="transition-delay: ${idx * 100}ms">
+                    <div onclick="navigateTo('blog/${post.id}')" class="group block p-6 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 hover:border-accent-500/50 cursor-pointer transition-all ${post.pinned ? 'ring-1 ring-accent-200 dark:ring-accent-900 bg-accent-50/50 dark:bg-accent-900/10' : ''} ${REVEAL_CLASS} reveal-node active:scale-[0.98]" style="transition-delay: ${idx * 100}ms">
                         ${post.pinned ? '<div class="flex items-center gap-1 text-[10px] font-bold text-accent-600 mb-2"><i data-lucide="pin" class="w-3 h-3"></i> START HERE</div>' : ''}
                         <div class="flex items-center gap-3 mb-3"><span class="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">${post.mood}</span><span class="text-[10px] text-stone-400">•</span><span class="text-[10px] text-stone-400">${post.readTime} read</span></div>
                         <h3 class="text-xl font-bold mb-2 text-stone-900 dark:text-white group-hover:text-accent-600 transition-colors">${post.title}</h3>
@@ -595,7 +549,7 @@ const renderBlogDetail = (id) => {
     if (!post) { setTimeout(() => navigateTo('blog'), 0); return ''; }
     return `
         <article class="max-w-2xl mx-auto py-12 px-6 md:px-8 animate-fade-up">
-            <button onclick="navigateTo('blog')" class="touch-target flex items-center gap-2 text-sm text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 mb-8 transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+            <button onclick="navigateTo('blog')" class="active:scale-95 touch-target flex items-center gap-2 text-sm text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 mb-8 transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
             <header class="mb-8 text-left">
                 <div class="flex gap-2 mb-4"><span class="px-2 py-1 bg-accent-50 dark:bg-stone-800 text-accent-700 dark:text-accent-400 rounded text-xs font-bold uppercase tracking-wider">${post.category}</span><span class="px-2 py-1 border border-stone-200 dark:border-stone-700 rounded text-xs font-medium text-stone-500">${post.mood}</span></div>
                 <h1 class="text-3xl md:text-4xl font-bold mb-4 text-stone-900 dark:text-stone-100 leading-tight">${post.title}</h1>
@@ -612,7 +566,7 @@ const renderContact = () => `
         <div class="mb-10"><h2 class="text-3xl font-bold mb-4 text-stone-900 dark:text-white">Get In Touch</h2><p class="text-stone-500 dark:text-stone-400">Want to discuss F1 strategies or code bugs? Drop a message.</p></div>
         <div class="bg-white dark:bg-stone-900 p-8 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm">
             <a href="mailto:${SITE_CONFIG.social.email}" class="block mb-8"><div class="w-16 h-16 bg-accent-50 dark:bg-stone-800 rounded-2xl flex items-center justify-center text-accent-600 mb-4"><i data-lucide="mail" class="w-8 h-8"></i></div><p class="text-lg font-bold text-stone-900 dark:text-white hover:underline">${SITE_CONFIG.social.email}</p><p class="text-sm text-stone-500">Email Me</p></a>
-            <div class="flex justify-start gap-4"><a href="https://instagram.com/${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener noreferrer" class="touch-target flex items-center gap-2 px-5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-full text-sm font-bold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i> Instagram</a></div>
+            <div class="flex justify-start gap-4"><a href="https://instagram.com/${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener noreferrer" class="active:scale-95 touch-target flex items-center gap-2 px-5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-full text-sm font-bold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i> Instagram</a></div>
         </div>
     </div>
 `;
@@ -627,14 +581,14 @@ const renderFooter = () => `
             </div>
             <div class="flex flex-col items-end gap-6">
                 <div class="flex gap-6 text-base font-medium text-stone-600 dark:text-stone-400">
-                    <a onclick="navigateTo('home')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Home</a>
+                    <a onclick="navigateTo('home')" class="active:scale-95 touch-target cursor-pointer hover:text-accent-600 transition-colors">Home</a>
                     <span class="text-stone-300 dark:text-stone-700 flex items-center">·</span>
-                    <a onclick="navigateTo('projects')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Projects</a>
+                    <a onclick="navigateTo('projects')" class="active:scale-95 touch-target cursor-pointer hover:text-accent-600 transition-colors">Projects</a>
                     <span class="text-stone-300 dark:text-stone-700 flex items-center">·</span>
-                    <a onclick="navigateTo('blog')" class="touch-target cursor-pointer hover:text-accent-600 transition-colors">Journal</a>
+                    <a onclick="navigateTo('blog')" class="active:scale-95 touch-target cursor-pointer hover:text-accent-600 transition-colors">Journal</a>
                 </div>
                 <a href="https://instagram.com/${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener noreferrer" 
-                   class="flex items-center gap-2 px-6 py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 rounded-full font-bold text-sm shadow-lg hover:scale-105 hover:shadow-xl transition-all">
+                   class="active:scale-95 flex items-center gap-2 px-6 py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 rounded-full font-bold text-sm shadow-lg hover:scale-105 hover:shadow-xl transition-all">
                     <i data-lucide="instagram" class="w-4 h-4"></i>
                     <span>Let's talk with me</span>
                 </a>
@@ -657,7 +611,7 @@ const renderMain = (state, mounts) => {
     const { page, id } = state.route;
     let mainHTML = '';
     switch(page) {
-        case 'home': mainHTML = renderHome(state); break; // Pass state to home
+        case 'home': mainHTML = renderHome(state); break;
         case 'projects': mainHTML = renderProjects(); break;
         case 'about': mainHTML = renderAbout(); break;
         case 'blog': mainHTML = id ? renderBlogDetail(id) : renderBlog(state); break;
@@ -722,15 +676,8 @@ const renderApp = (state, oldState) => {
     }
 
     // 3. Main Content: Render if routing or data filtering changes
-    if (!oldState || state.activeTab !== oldState.activeTab || state.route.id !== oldState.route.id || state.filterCategory !== oldState.filterCategory || state.searchTerm !== oldState.searchTerm || state.spotifyData !== oldState.spotifyData) {
+    if (!oldState || state.activeTab !== oldState.activeTab || state.route.id !== oldState.route.id || state.filterCategory !== oldState.filterCategory || state.searchTerm !== oldState.searchTerm || state.easterEggRevealed !== oldState.easterEggRevealed) {
         renderMain(state, mounts);
-        
-        // Trigger loadSpotify when entering home
-        if (state.route.page === 'home') {
-            startSpotifyPolling();
-        } else {
-            stopSpotifyPolling(); // Stop polling when leaving home
-        }
     }
 
     // 4. Footer: Render once
@@ -766,6 +713,6 @@ window.addEventListener('hashchange', () => {
 // Manually handle loading state removal after initial render sequence
 setTimeout(() => {
     appStore.setState({ isLoading: false });
-}, 100); // Quick state update to remove static loader since intro handles it
+}, 100); 
 
 renderApp(appStore.state);
