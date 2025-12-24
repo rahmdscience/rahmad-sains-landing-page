@@ -215,9 +215,9 @@ class Store {
         
         // Lock/Unlock body scroll based on menu state
         if (isOpen) {
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; // Disable scroll
         } else {
-            document.body.style.overflow = '';
+            document.body.style.overflow = ''; // Enable scroll
         }
     }
     triggerEasterEgg() {
