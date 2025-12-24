@@ -209,7 +209,16 @@ class Store {
         this.initTheme();
     }
     toggleMobileMenu() {
-        this.setState({ mobileMenuOpen: !this.state.mobileMenuOpen });
+        // Toggle mobile menu state
+        const isOpen = !this.state.mobileMenuOpen;
+        this.setState({ mobileMenuOpen: isOpen });
+        
+        // Lock/Unlock body scroll based on menu state
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
     }
     triggerEasterEgg() {
         this.setState({ easterEggRevealed: !this.state.easterEggRevealed });
@@ -229,6 +238,12 @@ const appStore = new Store();
 const navigateTo = (path) => {
     try { window.location.hash = path; } catch (e) { console.warn("Sandbox limitation"); }
     const { page, id } = parseRoute(path);
+    
+    // Unlock scroll if navigating from mobile menu
+    if (appStore.state.mobileMenuOpen) {
+        document.body.style.overflow = '';
+    }
+
     appStore.setState({ 
         activeTab: page === 'blog' && id ? 'blog' : page, 
         route: { page, id },
@@ -337,12 +352,12 @@ const getMobileMenuHTML = (state) => {
     if (!state.mobileMenuOpen) return '';
     
     return `
-        <div class="fixed inset-0 z-[999] bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center animate-fade-in md:hidden">
-            <button class="absolute top-6 right-6 p-4 text-stone-600 dark:text-stone-300" onclick="appStore.toggleMobileMenu()">
+        <div class="fixed inset-0 z-[999] bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center animate-fade-in md:hidden touch-none" onclick="appStore.toggleMobileMenu()"> <!-- Add touch-none to prevent scroll on overlay, click to close -->
+            <button class="absolute top-6 right-6 p-4 text-stone-600 dark:text-stone-300" onclick="event.stopPropagation(); appStore.toggleMobileMenu()"> <!-- Stop propagation so button works -->
                 <i data-lucide="x" class="w-8 h-8"></i>
             </button>
             
-            <div class="flex flex-col gap-6 text-center">
+            <div class="flex flex-col gap-6 text-center" onclick="event.stopPropagation()"> <!-- Stop propagation to prevent close when clicking menu area (optional) -->
                 ${Object.keys(Icons).map(key => `
                     <button onclick="navigateTo('${key}')" class="text-3xl font-bold text-stone-900 dark:text-white capitalize hover:text-accent-500 transition-colors">
                         ${key}
@@ -533,6 +548,23 @@ const renderBlog = (state) => {
             </div>
             <div class="mt-12 pt-8 border-t border-stone-200 dark:border-stone-800 text-center ${REVEAL_CLASS} reveal-node"><p class="text-xs text-stone-400 italic">Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.</p></div>
         </div>
+    `;
+};
+
+const renderBlogDetail = (id) => {
+    const post = BLOG_DATA.find(p => p.id === parseInt(id));
+    if (!post) { setTimeout(() => navigateTo('blog'), 0); return ''; }
+    return `
+        <article class="max-w-2xl mx-auto py-12 px-6 md:px-8 animate-fade-up">
+            <button onclick="navigateTo('blog')" class="active:scale-95 touch-target flex items-center gap-2 text-sm text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 mb-8 transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+            <header class="mb-8 text-left">
+                <div class="flex gap-2 mb-4"><span class="px-2 py-1 bg-accent-50 dark:bg-stone-800 text-accent-700 dark:text-accent-400 rounded text-xs font-bold uppercase tracking-wider">${post.category}</span><span class="px-2 py-1 border border-stone-200 dark:border-stone-700 rounded text-xs font-medium text-stone-500">${post.mood}</span></div>
+                <h1 class="text-3xl md:text-4xl font-bold mb-4 text-stone-900 dark:text-stone-100 leading-tight">${post.title}</h1>
+                <div class="flex items-center gap-3 text-sm text-stone-500"><span>${post.date}</span><span>•</span><span>${post.readTime} read</span></div>
+            </header>
+            <div class="prose prose-stone dark:prose-invert prose-lg text-left"><div class="whitespace-pre-line text-stone-700 dark:text-stone-300 leading-relaxed">${post.content}</div></div>
+            <div class="mt-12 pt-8 border-t border-stone-200 dark:border-stone-800 flex items-center gap-3"><div class="w-10 h-10 bg-stone-200 dark:bg-stone-800 rounded-full flex items-center justify-center text-xs font-bold text-stone-600 dark:text-stone-300">RS</div><div><p class="text-sm font-bold text-stone-900 dark:text-white">Written by Rahmad Sains</p><p class="text-xs text-stone-500">Student & Learner</p></div></div>
+        </article>
     `;
 };
 
