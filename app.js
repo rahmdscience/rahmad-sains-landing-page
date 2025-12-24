@@ -441,7 +441,20 @@ const POPUP_DATA = {
             intro: "A controller that just works, especially on Linux.",
             points: ["Plug and play.", "Comfortable for long sessions.", "Reliable build quality."],
             footer: "No drivers drama."
-        }
+        },
+        device: {
+            title: "Why Acer and Samsung",
+            intro: "A budget device with cool features",
+            points: ["Budget friendly.", "Comfortable for long term use.", "Reliable build quality."],
+            footer: "Increase creativity"
+        },
+        storage: {
+            title: "Why Adata",
+            intro: "storage with good read and write capabilities",
+            points: ["Gift from my brothers", "Still usable for anything", "Reliable build quality."],
+            footer: "No need to panic because the storage is full"
+        },
+        
     },
     obsessions_and_interests: {
         motorsports: {
@@ -492,8 +505,8 @@ const TECH_STACK_DATA = [
     { label: "Browser", value: "Zen Browser", popupId: "browser" },
     { label: "Keyboard", value: "Vortex Mono 75%", popupId: "keyboard" },
     { label: "Gamepad", value: "8BitDo Ultimate 2C", popupId: "gamepad" },
-    { label: "Device", value: "Acer & Samsung", popupId: null }, 
-    { label: "Storage", value: "ADATA", popupId: null }       
+    { label: "Device", value: "Acer & Samsung", popupId: "device" }, 
+    { label: "Storage", value: "ADATA", popupId: "storage" }       
 ];
 
 const INTERESTS_DATA = [
