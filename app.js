@@ -9,13 +9,12 @@ const SITE_CONFIG = {
     status: {
         label: "School Holiday",
         state: "holiday",
-        note: "Manually updated by Rahmad Sains"
+        note: "Manually updated by Rahmad"
     },
     social: {
         email: "rsainsalhafidz@gmail.com",
         instagram: "rahmdsai"
     },
-    // Easter Egg Quote
     quote: "Stay curious, stay humble."
 };
 
@@ -26,8 +25,7 @@ const TECH_STACK_DATA = [
     { label: "Browser", value: "Zen Browser" },
     { label: "Keyboard", value: "Vortex Mono 75%" },
     { label: "Gamepad", value: "8BitDo Ultimate 2C" },
-    { label: "Main Device", value: "Acer & Samsung" },
-    { label: "Storage", value: "Adata" }
+    { label: "Main Device", value: "Acer (Laptop) & Samsung (HP)" }
 ];
 
 const INTERESTS_DATA = [
@@ -41,7 +39,7 @@ const INTERESTS_DATA = [
 const IDOLS_DATA = [
     { name: "Cristiano Ronaldo", role: "Al Nassr", icon: "⚽", link: "https://www.transfermarkt.com/cristiano-ronaldo/profil/spieler/8198" },
     { name: "Max Verstappen", role: "Red Bull Racing", icon: "🏎️", link: "https://www.formula1.com/en/drivers/max-verstappen.html" },
-    { name: "Carlos Sainz", role: "Williams", icon: "🏎️", note: "Name similarity!", link: "https://www.formula1.com/en/drivers/carlos-sainz.html" }
+    { name: "Carlos Sainz", role: "Williams", icon: "🌶️", note: "Name similarity!", link: "https://www.formula1.com/en/drivers/carlos-sainz.html" }
 ];
 
 const PROJECTS_DATA = [
@@ -89,7 +87,7 @@ const BLOG_DATA = [
         title: "Why I Idolise Max Verstappen?",
         category: "Motorsports",
         mood: "Analysis",
-        date: "23 Dec 2025",
+        date: "23 Dec 2024",
         readTime: "4 min",
         pinned: true, 
         excerpt: "It's not just about the speed. It's about the relentless mentality to be P1 every single session.",
@@ -104,7 +102,7 @@ const BLOG_DATA = [
         title: "Balancing School and Code",
         category: "Coding",
         mood: "Reflection",
-        date: "10 Dec 2025",
+        date: "10 Dec 2024",
         readTime: "3 min",
         excerpt: "Chemical equations in the morning, React components at night. The chaotic life of a Grade 12 student.",
         content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.
@@ -116,7 +114,7 @@ const BLOG_DATA = [
         title: "Real Madrid 2012: The Perfect Counter",
         category: "Football",
         mood: "Opinion",
-        date: "05 Nov 2025",
+        date: "05 Nov 2024",
         readTime: "5 min",
         excerpt: "Mourinho's Madrid was efficient, direct, and ruthless. A tactical analysis from a fan's perspective.",
         content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.
@@ -128,7 +126,7 @@ const BLOG_DATA = [
         title: "My Coffee Routine",
         category: "Coffee & Thoughts",
         mood: "Chill",
-        date: "01 Nov 2025",
+        date: "01 Nov 2024",
         readTime: "2 min",
         excerpt: "Why I switched to manual brew and how it helps me think clearly before starting homework.",
         content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.`
@@ -162,15 +160,9 @@ const initRevealObserver = () => {
 
 const attachRevealObservers = () => {
     if (!revealObserver) initRevealObserver();
-    if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => {
-            document.querySelectorAll('.reveal-node').forEach(el => revealObserver.observe(el));
-        });
-    } else {
-        setTimeout(() => {
-            document.querySelectorAll('.reveal-node').forEach(el => revealObserver.observe(el));
-        }, 50);
-    }
+    setTimeout(() => {
+        document.querySelectorAll('.reveal-node').forEach(el => revealObserver.observe(el));
+    }, 50);
 };
 
 const REVEAL_CLASS = "opacity-0 blur-[6px] translate-y-4 transition-all duration-[420ms] ease-out will-change-transform";
@@ -196,7 +188,7 @@ class Store {
             showIntro: true, 
             isScrolled: false,
             mobileMenuOpen: false,
-            easterEggRevealed: false // [DDDDDD.JSON] Easter Egg State
+            easterEggRevealed: false
         };
         this.listeners = [];
         this.initTheme();
@@ -253,7 +245,6 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Keyboard Accessibility
 window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     switch(e.key.toLowerCase()) {
@@ -278,7 +269,6 @@ const Icons = {
     contact: `<i data-lucide="mail" class="w-4 h-4"></i>`
 };
 
-// [DDDDDD.JSON] Intro Screen Component
 const renderIntro = () => `
     <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-stone-950 text-white transition-opacity duration-500" id="intro-screen">
         <div class="space-y-6 text-center w-64">
@@ -294,7 +284,7 @@ const renderIntro = () => `
     </div>
 `;
 
-// [DDDDDD.JSON] Navbar: Fullscreen Mobile Menu
+// [FIX] Navbar: Cleaned up, Mobile Menu Logic Moved
 const getNavbarHTML = (state) => {
     const navLinks = Object.keys(Icons).map(key => {
         const isActive = state.activeTab === key;
@@ -338,32 +328,35 @@ const getNavbarHTML = (state) => {
                     </button>
                 </div>
             </div>
-
-            <!-- [DDDDDD.JSON] Mobile Full Screen Menu -->
-            ${state.mobileMenuOpen ? `
-                <div class="fixed inset-0 z-50 bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center animate-fade-in md:hidden">
-                    <button class="absolute top-6 right-6 p-4 text-stone-600 dark:text-stone-300" onclick="appStore.toggleMobileMenu()">
-                        <i data-lucide="x" class="w-8 h-8"></i>
-                    </button>
-                    
-                    <div class="flex flex-col gap-6 text-center">
-                        ${Object.keys(Icons).map(key => `
-                            <button onclick="navigateTo('${key}')" class="text-3xl font-bold text-stone-900 dark:text-white capitalize hover:text-accent-500 transition-colors">
-                                ${key}
-                            </button>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="mt-12 text-sm text-stone-500 font-medium">
-                        ${SITE_CONFIG.status.label} <span class="ml-2 ${SITE_CONFIG.status.state === 'holiday' ? 'text-green-500' : 'text-red-500'}">●</span>
-                    </div>
-                </div>
-            ` : ''}
         </div>
     `;
 };
 
-// [DDDDDD.JSON] Tech Stack Component
+// [FIX] Mobile Menu rendered OUTSIDE of Navbar to prevent containment issues
+const getMobileMenuHTML = (state) => {
+    if (!state.mobileMenuOpen) return '';
+    
+    return `
+        <div class="fixed inset-0 z-[999] bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center animate-fade-in md:hidden">
+            <button class="absolute top-6 right-6 p-4 text-stone-600 dark:text-stone-300" onclick="appStore.toggleMobileMenu()">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            
+            <div class="flex flex-col gap-6 text-center">
+                ${Object.keys(Icons).map(key => `
+                    <button onclick="navigateTo('${key}')" class="text-3xl font-bold text-stone-900 dark:text-white capitalize hover:text-accent-500 transition-colors">
+                        ${key}
+                    </button>
+                `).join('')}
+            </div>
+            
+            <div class="mt-12 text-sm text-stone-500 font-medium">
+                ${SITE_CONFIG.status.label} <span class="ml-2 ${SITE_CONFIG.status.state === 'holiday' ? 'text-green-500' : 'text-red-500'}">●</span>
+            </div>
+        </div>
+    `;
+};
+
 const renderTechStack = () => `
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
         ${TECH_STACK_DATA.map(item => `
@@ -378,10 +371,9 @@ const renderTechStack = () => `
 const renderHome = (state) => `
     <div id="hero-section" class="max-w-4xl mx-auto space-y-20 py-20 px-6 md:px-8">
         <section class="flex flex-col gap-6 text-center items-center z-10 relative ${REVEAL_CLASS} reveal-node">
-            <!-- [DDDDDD.JSON] Easter Egg Interaction -->
             <div onclick="appStore.triggerEasterEgg()" class="cursor-pointer group select-none">
                 <h1 class="text-5xl md:text-7xl font-bold leading-tight text-stone-900 dark:text-stone-100 tracking-tight transition-transform group-active:scale-95">
-                    Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">Rahmad Sains
+                    Hi, I'm <span class="text-accent-600 dark:text-accent-500 relative inline-block">Rahmad
                         <svg class="absolute w-full h-3 -bottom-1 left-0 text-accent-200 dark:text-accent-800 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" /></svg>
                     </span>.
                 </h1>
@@ -402,7 +394,6 @@ const renderHome = (state) => `
         </section>
         
         <section class="${REVEAL_CLASS} reveal-node" style="transition-delay: 120ms">
-            <!-- Setup & Gear (Tech Stack) -->
             <div class="mb-16">
                 <div class="flex items-center justify-center gap-4 mb-6">
                     <div class="h-px bg-stone-200 dark:bg-stone-800 flex-1"></div>
@@ -545,23 +536,6 @@ const renderBlog = (state) => {
     `;
 };
 
-const renderBlogDetail = (id) => {
-    const post = BLOG_DATA.find(p => p.id === parseInt(id));
-    if (!post) { setTimeout(() => navigateTo('blog'), 0); return ''; }
-    return `
-        <article class="max-w-2xl mx-auto py-12 px-6 md:px-8 animate-fade-up">
-            <button onclick="navigateTo('blog')" class="active:scale-95 touch-target flex items-center gap-2 text-sm text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 mb-8 transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
-            <header class="mb-8 text-left">
-                <div class="flex gap-2 mb-4"><span class="px-2 py-1 bg-accent-50 dark:bg-stone-800 text-accent-700 dark:text-accent-400 rounded text-xs font-bold uppercase tracking-wider">${post.category}</span><span class="px-2 py-1 border border-stone-200 dark:border-stone-700 rounded text-xs font-medium text-stone-500">${post.mood}</span></div>
-                <h1 class="text-3xl md:text-4xl font-bold mb-4 text-stone-900 dark:text-stone-100 leading-tight">${post.title}</h1>
-                <div class="flex items-center gap-3 text-sm text-stone-500"><span>${post.date}</span><span>•</span><span>${post.readTime} read</span></div>
-            </header>
-            <div class="prose prose-stone dark:prose-invert prose-lg text-left"><div class="whitespace-pre-line text-stone-700 dark:text-stone-300 leading-relaxed">${post.content}</div></div>
-            <div class="mt-12 pt-8 border-t border-stone-200 dark:border-stone-800 flex items-center gap-3"><div class="w-10 h-10 bg-stone-200 dark:bg-stone-800 rounded-full flex items-center justify-center text-xs font-bold text-stone-600 dark:text-stone-300">RS</div><div><p class="text-sm font-bold text-stone-900 dark:text-white">Written by Rahmad Sains</p><p class="text-xs text-stone-500">Student & Learner</p></div></div>
-        </article>
-    `;
-};
-
 const renderContact = () => `
     <div class="max-w-2xl mx-auto py-12 px-6 md:px-8 ${REVEAL_CLASS} reveal-node text-left">
         <div class="mb-10"><h2 class="text-3xl font-bold mb-4 text-stone-900 dark:text-white">Get In Touch</h2><p class="text-stone-500 dark:text-stone-400">Want to discuss F1 strategies or code bugs? Drop a message.</p></div>
@@ -692,11 +666,32 @@ const renderApp = (state, oldState) => {
     // Force remove if intro is done
     if (loader && !state.showIntro) loader.remove();
 
-    // Init icons via requestIdleCallback for performance
-    if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => lucide.createIcons());
+    // Init icons via requestIdleCallback for performance, force synchronous if needed for immediate UI
+    if (!state.mobileMenuOpen) {
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => lucide.createIcons());
+        } else {
+            lucide.createIcons();
+        }
     } else {
+        // Force sync for menu interactions
         lucide.createIcons();
+    }
+    
+    // Check if mobile menu is open, render it to body/app to escape stacking context
+    const mobileMenuMount = document.getElementById('mobile-menu-container');
+    if (state.mobileMenuOpen) {
+        if (!mobileMenuMount) {
+            const div = document.createElement('div');
+            div.id = 'mobile-menu-container';
+            div.innerHTML = getMobileMenuHTML(state);
+            document.body.appendChild(div);
+            lucide.createIcons(); // Re-init icons for the new menu
+        }
+    } else {
+        if (mobileMenuMount) {
+            mobileMenuMount.remove();
+        }
     }
 };
 
