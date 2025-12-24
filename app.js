@@ -1,8 +1,6 @@
 /**
  * --------------------------------------------------------------------------
- * DATA LAYER
- * Note: Images are now served locally from an 'assets' folder.
- * Please ensure you create an 'assets' folder and place images there.
+ * DATA LAYER (Konfigurasi & Konten)
  * --------------------------------------------------------------------------
  */
 const SITE_CONFIG = {
@@ -10,7 +8,7 @@ const SITE_CONFIG = {
     role: "Student",
     status: {
         label: "School Holiday",
-        state: "holiday",
+        state: "holiday", // opsi: 'holiday' (hijau) atau 'active' (merah)
         note: "Manually updated by Rahmad"
     },
     social: {
@@ -185,23 +183,40 @@ const REVEAL_CLASS = "opacity-0 blur-[6px] translate-y-4 transition-all duration
 
 /**
  * --------------------------------------------------------------------------
- * CORE ARCHITECTURE
+ * CORE ARCHITECTURE (State, Router, Store)
  * --------------------------------------------------------------------------
  */
-const getSafeHash = () => { try { return window.location.hash.slice(1); } catch (e) { return ''; } };
-const parseRoute = (hash) => { const parts = hash.split('/'); return { page: parts[0] || 'home', id: parts[1] || null }; };
+
+// Helper aman untuk mengambil hash URL (mencegah error di iframe/sandbox)
+const getSafeHash = () => { 
+    try { 
+        return window.location.hash.slice(1); 
+    } catch (e) { 
+        return ''; 
+    } 
+};
+
+// Parser rute sederhana: #blog/1 -> { page: 'blog', id: '1' }
+const parseRoute = (hash) => { 
+    const parts = hash.split('/'); 
+    return { 
+        page: parts[0] || 'home', 
+        id: parts[1] || null 
+    }; 
+};
 
 class Store {
     constructor() {
         const initialRoute = parseRoute(getSafeHash());
         this.state = {
+            // Deteksi preferensi tema sistem (Dark/Light)
             theme: localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
             visitedTabs: new Set(['home']),
             activeTab: initialRoute.page,
             route: initialRoute,
             searchTerm: '',
             filterCategory: 'All',
-            showIntro: true, 
+            showIntro: true,
             isScrolled: false,
             mobileMenuOpen: false,
             easterEggRevealed: false
@@ -209,49 +224,68 @@ class Store {
         this.listeners = [];
         this.initTheme();
     }
+
+    // Terapkan class 'dark' ke elemen <html>
     initTheme() {
         if (this.state.theme === 'dark') document.documentElement.classList.add('dark');
         else document.documentElement.classList.remove('dark');
     }
+
     setState(newState) { 
         const oldState = { ...this.state };
         this.state = { ...this.state, ...newState };
         this.notify(oldState); 
     }
+
     toggleTheme() {
         const newTheme = this.state.theme === 'dark' ? 'light' : 'dark';
         this.setState({ theme: newTheme });
         localStorage.setItem('theme', newTheme);
         this.initTheme();
     }
+
     toggleMobileMenu() {
         const isOpen = !this.state.mobileMenuOpen;
         this.setState({ mobileMenuOpen: isOpen });
+        // Kunci scroll body saat menu terbuka agar fokus pada menu
         if (isOpen) {
             document.body.style.overflow = 'hidden'; 
         } else {
             document.body.style.overflow = '';
         }
     }
+
     triggerEasterEgg() {
         this.setState({ easterEggRevealed: !this.state.easterEggRevealed });
     }
+
     addVisitedTab(tab) {
         if (tab === 'blog-detail') return;
         const newSet = new Set(this.state.visitedTabs);
         newSet.add(tab);
         this.setState({ visitedTabs: newSet });
     }
-    subscribe(listener) { this.listeners.push(listener); return () => { this.listeners = this.listeners.filter(l => l !== listener); }; }
-    notify(oldState) { this.listeners.forEach(listener => listener(this.state, oldState)); }
+
+    subscribe(listener) { 
+        this.listeners.push(listener); 
+        return () => { 
+            this.listeners = this.listeners.filter(l => l !== listener); 
+        }; 
+    }
+
+    notify(oldState) { 
+        this.listeners.forEach(listener => listener(this.state, oldState)); 
+    }
 }
 
 const appStore = new Store();
 
+// Fungsi navigasi utama
 const navigateTo = (path) => {
     try { window.location.hash = path; } catch (e) { console.warn("Sandbox limitation"); }
     const { page, id } = parseRoute(path);
     
+    // Buka kunci scroll jika navigasi dari menu mobile
     if (appStore.state.mobileMenuOpen) {
         document.body.style.overflow = '';
     }
@@ -262,9 +296,10 @@ const navigateTo = (path) => {
         mobileMenuOpen: false 
     });
     appStore.addVisitedTab(page);
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0); // Reset scroll ke atas saat pindah halaman
 };
 
+// Listener scroll untuk efek navbar
 window.addEventListener('scroll', () => {
     const isScrolled = window.scrollY > 20;
     if (isScrolled !== appStore.state.isScrolled) {
@@ -272,6 +307,7 @@ window.addEventListener('scroll', () => {
     }
 });
 
+// Aksesibilitas Keyboard
 window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     switch(e.key.toLowerCase()) {
@@ -285,7 +321,7 @@ window.addEventListener('keydown', (e) => {
 
 /**
  * --------------------------------------------------------------------------
- * UI COMPONENTS
+ * UI COMPONENTS (Fungsi Render HTML)
  * --------------------------------------------------------------------------
  */
 const Icons = {
@@ -296,7 +332,7 @@ const Icons = {
     contact: `<i data-lucide="mail" class="w-4 h-4"></i>`
 };
 
-// [EXISTING LOADER] Blocking Intro with Progress Bar (Saran #2 ignored as requested)
+// [LOADER LAMA] Blocking Intro dengan Progress Bar (Saran #2 diabaikan sesuai permintaan)
 const renderIntro = () => `
     <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-stone-950 text-white transition-opacity duration-500" id="intro-screen">
         <div class="space-y-6 text-center w-64">
@@ -312,6 +348,7 @@ const renderIntro = () => `
     </div>
 `;
 
+// [FIX] Navbar: Dibersihkan, Logika Menu Mobile Dipindahkan
 const getNavbarHTML = (state) => {
     const navLinks = Object.keys(Icons).map(key => {
         const isActive = state.activeTab === key;
@@ -359,6 +396,7 @@ const getNavbarHTML = (state) => {
     `;
 };
 
+// [FIX] Menu Mobile dirender DI LUAR Navbar untuk mencegah masalah containment
 const getMobileMenuHTML = (state) => {
     if (!state.mobileMenuOpen) return '';
     return `

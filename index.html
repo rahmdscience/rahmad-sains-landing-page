@@ -6,8 +6,11 @@
     <title>Rahmad Sains - Personal Space</title>
     <meta name="description" content="Personal website of Rahmad Sains - High School Student, Learner, & Dreamer.">
 
-    <!-- Tailwind CDN (Production should use CLI build) -->
+    <!-- 1. Tailwind CSS Framework (CDN) -->
+    <!-- Catatan: Untuk produksi, disarankan menggunakan CLI build -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Konfigurasi Tema Tailwind (Warna & Animasi Kustom) -->
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -15,11 +18,14 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
+                        // Warna Dasar: Stone (Netral & Dewasa)
                         stone: {
                             50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1',
                             400: '#a8a29e', 500: '#78716c', 600: '#57534e', 700: '#44403c',
                             800: '#292524', 900: '#1c1917', 950: '#0c0a09',
                         },
+                        // Warna Aksen: Warm Orange (Personal & Hangat)
+                        // Sesuai dengan arahan desain untuk menghindari warna biru/ungu generik
                         accent: {
                             50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74',
                             400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c',
@@ -28,16 +34,16 @@
                     },
                     animation: {
                         'fade-up': 'fadeUp 0.8s ease-out forwards',
-                        'float': 'float 6s ease-in-out infinite',
+                        'dropdown': 'dropdownEnter 0.2s ease-out forwards',
                     },
                     keyframes: {
                         fadeUp: {
                             '0%': { opacity: '0', transform: 'translateY(12px) scale(0.98)' },
                             '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
                         },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
+                        dropdownEnter: {
+                            '0%': { opacity: '0', transform: 'translateY(-10px) scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
                         }
                     }
                 }
@@ -45,31 +51,36 @@
         }
     </script>
     
-    <!-- Icons -->
+    <!-- 3. Icon Library (Lucide) -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Custom CSS File -->
+    <!-- 4. Link ke CSS Kustom -->
     <link rel="stylesheet" href="style.css">
 </head>
+
+<!-- Proteksi Konten Sederhana (Klik Kanan Disable) -->
 <body oncontextmenu="return false;" class="bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 transition-colors duration-300 overflow-x-hidden relative">
 
+    <!-- Efek Grain Background (Z-index: 0, Pointer-events: none di CSS) -->
     <div class="bg-grain"></div>
 
-    <!-- [MOUNT POINT] -->
+    <!-- Area Aplikasi Utama (Z-index: 10 agar di atas grain) -->
     <div id="app" class="flex flex-col min-h-screen relative z-10">
-        <!-- Initial Loader -->
-        <div class="fixed inset-0 flex items-center justify-center bg-stone-50 dark:bg-stone-950 z-50 transition-opacity duration-500" id="initial-loader">
-            <div class="text-center">
-                <h1 class="text-2xl font-bold text-stone-900 dark:text-white tracking-tight animate-pulse">Rahmad Sains</h1>
-            </div>
-        </div>
         
+        <!-- Loading Screen Awal / Intro Blocking -->
+        <!-- Akan diisi dan dikelola oleh handleIntroScreen di app.js -->
+        
+        <!-- Tempat Navbar Akan Muncul (Sticky Top) -->
         <header id="navbar-mount" class="sticky top-0 z-40 w-full"></header>
+        
+        <!-- Tempat Konten Halaman (Home, Projects, Blog, dll) Akan Muncul -->
         <main id="main-mount" class="flex-1 w-full"></main>
-        <footer id="footer-mount" class="mt-auto border-t border-stone-200 dark:border-stone-800 py-12 w-full"></footer>
+        
+        <!-- Tempat Footer Akan Muncul (Sticky Bottom) -->
+        <footer id="footer-mount" class="mt-auto border-t border-stone-200 dark:border-stone-800 w-full bg-stone-50 dark:bg-stone-950"></footer>
     </div>
 
-    <!-- App Logic File -->
+    <!-- 5. Link ke Logika JavaScript -->
     <script src="app.js"></script>
 </body>
 </html>
