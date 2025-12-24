@@ -14,21 +14,6 @@ The website includes sections such as profile, interests, setup & gear, gallery 
 
 ---
 
-## Project Structure
-
-```
-
-.
-├── index.html
-├── style.css
-├── app.js
-├── foto/
-│   ├── 1.jpg
-│   ├── 2.jpg
-│   ├── video5.mp4
-│   ├── video5.webp
-│   └── ...
-└── README.md
 
 ````
 
