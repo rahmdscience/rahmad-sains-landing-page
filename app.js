@@ -20,8 +20,6 @@ const SITE_CONFIG = {
 
 // [SEPARATED] Data khusus untuk 3 foto tumpuk di halaman About
 const ABOUT_STACK_DATA = [
-    "./foto/a3.webp",
-    "./foto/a2.webp",
     "./foto/a1.webp"
 ];
 
@@ -1101,14 +1099,8 @@ const renderAbout = () => `
             <div class="relative w-48 h-64 flex-shrink-0 group cursor-pointer perspective-1000" onclick="appStore.setModal('photo_stack')">
                 <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-100 transition-opacity whitespace-nowrap">Click to view</div>
                 <!-- Stacked Images -->
-                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-200 rotate-6 translate-x-3 origin-bottom-right z-10 transition-transform group-hover:rotate-12 group-hover:translate-x-6">
-                    <img src="${ABOUT_STACK_DATA[0]}" class="w-full h-full object-cover opacity-80">
-                </div>
-                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-300 -rotate-6 -translate-x-3 origin-bottom-left z-0 transition-transform group-hover:-rotate-12 group-hover:-translate-x-6">
-                    <img src="${ABOUT_STACK_DATA[1]}" class="w-full h-full object-cover opacity-80">
-                </div>
                 <div class="relative w-full h-full rounded-2xl shadow-xl border-4 border-white dark:border-stone-800 bg-stone-100 z-20 transition-transform group-hover:-translate-y-2">
-                    <img src="${ABOUT_STACK_DATA[2]}" class="w-full h-full object-cover">
+                    <img src="${ABOUT_STACK_DATA[0]}" class="w-full h-full object-cover">
                 </div>
             </div>
             
