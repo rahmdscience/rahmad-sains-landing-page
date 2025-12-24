@@ -1,6 +1,8 @@
 /**
  * --------------------------------------------------------------------------
- * DATA LAYER (Updated per dddddd.json)
+ * DATA LAYER
+ * Note: Images are now served locally from an 'assets' folder.
+ * Please ensure you create an 'assets' folder and place images there.
  * --------------------------------------------------------------------------
  */
 const SITE_CONFIG = {
@@ -20,20 +22,20 @@ const SITE_CONFIG = {
 
 const TECH_STACK_DATA = [
     { label: "OS", value: "Linux" },
-    { label: "Distro", value: "EndeavourOS (Arch Based)" },
-    { label: "Display Server", value: "Wayland" },
+    { label: "Distro", value: "EndeavourOS" },
+    { label: "Display", value: "Wayland" },
     { label: "Browser", value: "Zen Browser" },
     { label: "Keyboard", value: "Vortex Mono 75%" },
     { label: "Gamepad", value: "8BitDo Ultimate 2C" },
-    { label: "Main Device", value: "Acer (Laptop) & Samsung (HP)" }
+    { label: "Device", value: "Acer & Samsung" }
 ];
 
 const INTERESTS_DATA = [
-    { id: "motorsports", label: "Motorsports", icon: "flag", desc: "F1 & Racing Culture", rotation: "-2deg" },
-    { id: "sports", label: "Sports", icon: "activity", desc: "Football & Basketball", rotation: "2deg" },
-    { id: "coding", label: "Coding", icon: "terminal", desc: "Learning by Building", rotation: "-1deg" },
+    { id: "motorsports", label: "Motorsports", icon: "flag", desc: "F1 & Racing", rotation: "-2deg" },
+    { id: "sports", label: "Sports", icon: "activity", desc: "Football & Basket", rotation: "2deg" },
+    { id: "coding", label: "Coding", icon: "terminal", desc: "Building Stuff", rotation: "-1deg" },
     { id: "tech", label: "Technology", icon: "cpu", desc: "Modern Gadgets", rotation: "3deg" },
-    { id: "coffee", label: "Coffee", icon: "coffee", desc: "Fuel for Thought", rotation: "-3deg" }
+    { id: "coffee", label: "Coffee", icon: "coffee", desc: "Daily Fuel", rotation: "-3deg" }
 ];
 
 const IDOLS_DATA = [
@@ -50,7 +52,9 @@ const PROJECTS_DATA = [
         status: "Completed",
         desc: "A simple information board for my class schedule and assignments.",
         learning: "Understanding CRUD operations and Firebase basics.",
-        link: "#"
+        link: "#",
+        // [LOCAL IMAGE]
+        image: "assets/projects/school-portal.jpg" 
     },
     {
         id: 2,
@@ -59,7 +63,9 @@ const PROJECTS_DATA = [
         status: "In Progress",
         desc: "Tracking race calendars and driver standings using public APIs.",
         learning: "Fetching complex JSON data and handling API rate limits.",
-        link: "#"
+        link: "#",
+        // [LOCAL IMAGE]
+        image: "assets/projects/f1-tracker.jpg"
     },
     {
         id: 3,
@@ -68,7 +74,9 @@ const PROJECTS_DATA = [
         status: "Completed",
         desc: "A curated list of best coffee spots and hidden gems in my city.",
         learning: "Responsive grid layouts and image optimization.",
-        link: "#"
+        link: "#",
+        // [LOCAL IMAGE]
+        image: "assets/projects/palembang-guide.jpg"
     },
     {
         id: 4,
@@ -77,7 +85,9 @@ const PROJECTS_DATA = [
         status: "Archived",
         desc: "Collection of snippets and notes from my learning journey.",
         learning: "Markdown parsing and static site generation concepts.",
-        link: "#"
+        link: "#",
+        // [LOCAL IMAGE]
+        image: "assets/projects/personal-wiki.jpg"
     }
 ];
 
@@ -93,9 +103,9 @@ const BLOG_DATA = [
         excerpt: "It's not just about the speed. It's about the relentless mentality to be P1 every single session.",
         content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.
 
-        Max Verstappen is a force of nature. Watching him drive gives me a sense of what absolute focus looks like. As a student, I try to apply this 'push to the limit' mentality to my exams and my code.
-        
-        It's about finding the gap that exists, not just in racing, but in problem-solving.`
+        Max Verstappen is a force of nature. Watching him drive gives me a sense of what absolute focus looks like. As a student, I try to apply this 'push to the limit' mentality to my exams and my code.`,
+        // [LOCAL IMAGE]
+        image: "assets/blog/max-verstappen.jpg"
     },
     {
         id: 2,
@@ -107,7 +117,9 @@ const BLOG_DATA = [
         excerpt: "Chemical equations in the morning, React components at night. The chaotic life of a Grade 12 student.",
         content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.
 
-        School is demanding. Grade 12 is no joke. But coding is my escape. It's the one place where if something breaks, I know there's a logical reason for it (usually).`
+        School is demanding. Grade 12 is no joke. But coding is my escape. It's the one place where if something breaks, I know there's a logical reason for it (usually).`,
+        // [LOCAL IMAGE]
+        image: "assets/blog/coding-school.jpg"
     },
     {
         id: 3,
@@ -119,7 +131,9 @@ const BLOG_DATA = [
         excerpt: "Mourinho's Madrid was efficient, direct, and ruthless. A tactical analysis from a fan's perspective.",
         content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.
 
-        I love efficient systems. Whether it's a well-optimized function or a 10-second counter-attack goal.`
+        I love efficient systems. Whether it's a well-optimized function or a 10-second counter-attack goal.`,
+        // [LOCAL IMAGE]
+        image: "assets/blog/real-madrid.jpg"
     },
     {
         id: 4,
@@ -129,13 +143,15 @@ const BLOG_DATA = [
         date: "01 Nov 2024",
         readTime: "2 min",
         excerpt: "Why I switched to manual brew and how it helps me think clearly before starting homework.",
-        content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.`
+        content: `Disclaimer: All articles reflect my personal thoughts, opinions, and learning journey.`,
+        // [LOCAL IMAGE]
+        image: "assets/blog/coffee.jpg"
     }
 ];
 
 /**
  * --------------------------------------------------------------------------
- * ANIMATION ENGINE (Intersection Observer)
+ * ANIMATION ENGINE
  * --------------------------------------------------------------------------
  */
 let revealObserver;
@@ -209,15 +225,12 @@ class Store {
         this.initTheme();
     }
     toggleMobileMenu() {
-        // Toggle mobile menu state
         const isOpen = !this.state.mobileMenuOpen;
         this.setState({ mobileMenuOpen: isOpen });
-        
-        // Lock/Unlock body scroll based on menu state
         if (isOpen) {
-            document.body.style.overflow = 'hidden'; // Disable scroll
+            document.body.style.overflow = 'hidden'; 
         } else {
-            document.body.style.overflow = ''; // Enable scroll
+            document.body.style.overflow = '';
         }
     }
     triggerEasterEgg() {
@@ -239,7 +252,6 @@ const navigateTo = (path) => {
     try { window.location.hash = path; } catch (e) { console.warn("Sandbox limitation"); }
     const { page, id } = parseRoute(path);
     
-    // Unlock scroll if navigating from mobile menu
     if (appStore.state.mobileMenuOpen) {
         document.body.style.overflow = '';
     }
@@ -284,6 +296,7 @@ const Icons = {
     contact: `<i data-lucide="mail" class="w-4 h-4"></i>`
 };
 
+// [EXISTING LOADER] Blocking Intro with Progress Bar (Saran #2 ignored as requested)
 const renderIntro = () => `
     <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-stone-950 text-white transition-opacity duration-500" id="intro-screen">
         <div class="space-y-6 text-center w-64">
@@ -299,7 +312,6 @@ const renderIntro = () => `
     </div>
 `;
 
-// [FIX] Navbar: Cleaned up, Mobile Menu Logic Moved
 const getNavbarHTML = (state) => {
     const navLinks = Object.keys(Icons).map(key => {
         const isActive = state.activeTab === key;
@@ -347,24 +359,20 @@ const getNavbarHTML = (state) => {
     `;
 };
 
-// [FIX] Mobile Menu rendered OUTSIDE of Navbar to prevent containment issues
 const getMobileMenuHTML = (state) => {
     if (!state.mobileMenuOpen) return '';
-    
     return `
-        <div class="fixed inset-0 z-[999] bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center animate-fade-in md:hidden touch-none" onclick="appStore.toggleMobileMenu()"> <!-- Add touch-none to prevent scroll on overlay, click to close -->
-            <button class="absolute top-6 right-6 p-4 text-stone-600 dark:text-stone-300" onclick="event.stopPropagation(); appStore.toggleMobileMenu()"> <!-- Stop propagation so button works -->
+        <div class="fixed inset-0 z-[999] bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center animate-fade-in md:hidden touch-none" onclick="appStore.toggleMobileMenu()">
+            <button class="absolute top-6 right-6 p-4 text-stone-600 dark:text-stone-300" onclick="event.stopPropagation(); appStore.toggleMobileMenu()">
                 <i data-lucide="x" class="w-8 h-8"></i>
             </button>
-            
-            <div class="flex flex-col gap-6 text-center" onclick="event.stopPropagation()"> <!-- Stop propagation to prevent close when clicking menu area (optional) -->
+            <div class="flex flex-col gap-6 text-center" onclick="event.stopPropagation()">
                 ${Object.keys(Icons).map(key => `
                     <button onclick="navigateTo('${key}')" class="text-3xl font-bold text-stone-900 dark:text-white capitalize hover:text-accent-500 transition-colors">
                         ${key}
                     </button>
                 `).join('')}
             </div>
-            
             <div class="mt-12 text-sm text-stone-500 font-medium">
                 ${SITE_CONFIG.status.label} <span class="ml-2 ${SITE_CONFIG.status.state === 'holiday' ? 'text-green-500' : 'text-red-500'}">●</span>
             </div>
@@ -409,6 +417,17 @@ const renderHome = (state) => `
         </section>
         
         <section class="${REVEAL_CLASS} reveal-node" style="transition-delay: 120ms">
+            <!-- [SARAN #6] Personal Experimentation Section -->
+            <div class="mb-12 p-6 border border-stone-200 dark:border-stone-800 rounded-2xl bg-stone-100/50 dark:bg-stone-900/50 text-center md:text-left flex flex-col md:flex-row items-center gap-4">
+                <div class="p-3 bg-accent-100 dark:bg-accent-900/30 rounded-xl text-accent-600 dark:text-accent-400">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-stone-900 dark:text-white mb-1">Currently Experimenting With</h3>
+                    <p class="text-sm text-stone-600 dark:text-stone-400">Trying to build a custom mechanical keyboard firmware using Rust. It's... challenging.</p>
+                </div>
+            </div>
+
             <div class="mb-16">
                 <div class="flex items-center justify-center gap-4 mb-6">
                     <div class="h-px bg-stone-200 dark:bg-stone-800 flex-1"></div>
@@ -445,9 +464,13 @@ const renderProjects = () => `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             ${PROJECTS_DATA.map((project, idx) => `
                 <div class="bg-white dark:bg-stone-900 rounded-3xl p-7 border border-stone-200 dark:border-stone-800 hover:border-accent-500/50 transition-all shadow-sm hover:shadow-xl hover:-translate-y-1 group flex flex-col h-full relative overflow-hidden ${REVEAL_CLASS} reveal-node" style="transition-delay: ${idx * 100}ms">
+                    <div class="h-48 overflow-hidden rounded-xl mb-6 bg-stone-100 dark:bg-stone-800 relative">
+                        <!-- [LOCAL IMAGE] -->
+                        <img src="${project.image}" alt="${project.title}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 transform group-hover:scale-105" loading="lazy">
+                        <div class="absolute top-3 right-3 px-3 py-1 bg-stone-900/80 backdrop-blur text-white text-[10px] font-bold rounded-full uppercase tracking-wider">${project.status}</div>
+                    </div>
                     <div class="flex justify-between items-start mb-4">
-                        <div class="p-2.5 bg-stone-100 dark:bg-stone-800 rounded-xl text-stone-600 dark:text-stone-300"><i data-lucide="grid" class="w-6 h-6"></i></div>
-                        <span class="px-3 py-1 bg-stone-100 dark:bg-stone-800 rounded-lg text-[10px] uppercase font-bold text-stone-500 tracking-wider">${project.status}</span>
+                        <span class="px-3 py-1 bg-stone-100 dark:bg-stone-800 rounded-lg text-[10px] uppercase font-bold text-stone-500 tracking-wider text-accent-600 dark:text-accent-400">${project.category}</span>
                     </div>
                     <h3 class="text-xl font-bold mb-2 text-stone-900 dark:text-white group-hover:text-accent-600 transition-colors">${project.title}</h3>
                     <p class="text-stone-600 dark:text-stone-400 text-sm leading-relaxed mb-4">${project.desc}</p>
@@ -470,25 +493,15 @@ const renderAbout = () => `
                 <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap lg:block hidden">Hover to reveal</div>
                 <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-stone-400 font-medium uppercase tracking-widest opacity-100 lg:hidden">Tap to reveal</div>
                 
-                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-200 overflow-hidden transform transition-all duration-500 ease-out 
-                    lg:group-hover:rotate-6 lg:group-hover:translate-x-12 
-                    group-[.reveal]:rotate-6 group-[.reveal]:translate-x-12 
-                    origin-bottom-right z-10">
-                    <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 lg:group-hover:opacity-100 group-[.reveal]:opacity-100">
+                <!-- [LOCAL IMAGES for Stack] -->
+                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-200 overflow-hidden transform transition-all duration-500 ease-out lg:group-hover:rotate-6 lg:group-hover:translate-x-12 group-[.reveal]:rotate-6 group-[.reveal]:translate-x-12 origin-bottom-right z-10">
+                    <img src="assets/about-coding.jpg" class="w-full h-full object-cover opacity-80 lg:group-hover:opacity-100 group-[.reveal]:opacity-100">
                 </div>
-                
-                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-300 overflow-hidden transform transition-all duration-500 ease-out 
-                    lg:group-hover:-rotate-6 lg:group-hover:-translate-x-12 
-                    group-[.reveal]:-rotate-6 group-[.reveal]:-translate-x-12 
-                    origin-bottom-left z-0">
-                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80 lg:group-hover:opacity-100 group-[.reveal]:opacity-100">
+                <div class="absolute inset-0 w-full h-full rounded-2xl shadow-lg border-4 border-white dark:border-stone-800 bg-stone-300 overflow-hidden transform transition-all duration-500 ease-out lg:group-hover:-rotate-6 lg:group-hover:-translate-x-12 group-[.reveal]:-rotate-6 group-[.reveal]:-translate-x-12 origin-bottom-left z-0">
+                    <img src="assets/about-gaming.jpg" class="w-full h-full object-cover opacity-80 lg:group-hover:opacity-100 group-[.reveal]:opacity-100">
                 </div>
-                
-                <div class="relative w-full h-full rounded-2xl shadow-xl border-4 border-white dark:border-stone-800 bg-stone-100 overflow-hidden transform transition-all duration-500 
-                    lg:group-hover:-translate-y-4 
-                    group-[.reveal]:-translate-y-4 
-                    z-20">
-                    <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover">
+                <div class="relative w-full h-full rounded-2xl shadow-xl border-4 border-white dark:border-stone-800 bg-stone-100 overflow-hidden transform transition-all duration-500 lg:group-hover:-translate-y-4 group-[.reveal]:-translate-y-4 z-20">
+                    <img src="assets/about-portrait.jpg" class="w-full h-full object-cover">
                 </div>
             </div>
             
@@ -558,6 +571,10 @@ const renderBlogDetail = (id) => {
         <article class="max-w-2xl mx-auto py-12 px-6 md:px-8 animate-fade-up">
             <button onclick="navigateTo('blog')" class="active:scale-95 touch-target flex items-center gap-2 text-sm text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 mb-8 transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
             <header class="mb-8 text-left">
+                <div class="w-full h-64 md:h-80 overflow-hidden rounded-3xl mb-8 bg-stone-100 dark:bg-stone-800">
+                    <!-- [LOCAL IMAGE] -->
+                    <img src="${post.image}" class="w-full h-full object-cover">
+                </div>
                 <div class="flex gap-2 mb-4"><span class="px-2 py-1 bg-accent-50 dark:bg-stone-800 text-accent-700 dark:text-accent-400 rounded text-xs font-bold uppercase tracking-wider">${post.category}</span><span class="px-2 py-1 border border-stone-200 dark:border-stone-700 rounded text-xs font-medium text-stone-500">${post.mood}</span></div>
                 <h1 class="text-3xl md:text-4xl font-bold mb-4 text-stone-900 dark:text-stone-100 leading-tight">${post.title}</h1>
                 <div class="flex items-center gap-3 text-sm text-stone-500"><span>${post.date}</span><span>•</span><span>${post.readTime} read</span></div>
@@ -578,12 +595,14 @@ const renderContact = () => `
     </div>
 `;
 
+// [UPDATED] Render Footer with Let's Talk Button
 const renderFooter = () => `
     <div class="w-full max-w-7xl mx-auto px-6 md:px-8 py-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
             <div class="text-left max-w-sm">
                 <h2 class="text-xl font-bold text-stone-900 dark:text-white tracking-tight">Rahmad<span class="text-stone-400">Sains</span></h2>
                 <p class="text-sm md:text-base font-medium text-stone-600 dark:text-stone-400 mt-2 leading-relaxed">Built slowly between homework, coffee, and late nights.</p>
+                <!-- [SARAN CONTENT PROTECTION] -->
                 <p class="text-[10px] text-stone-400 mt-2 opacity-60">* Please don’t copy without context.</p>
             </div>
             <div class="flex flex-col items-end gap-6">
@@ -687,7 +706,7 @@ const renderApp = (state, oldState) => {
         renderMain(state, mounts);
     }
 
-    // 4. Footer: Render once
+    // 4. Footer: Render once [OPTIMIZATION]
     if (!oldState) {
         mounts.footer.innerHTML = renderFooter();
     }
