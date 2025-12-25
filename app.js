@@ -31,7 +31,7 @@ const GALLERY_DATA = {
 {
     id: 1,
     type: "image",
-    src: "./foto/1.png",
+    src: "./foto/1.webp",
     alt: "Memories...",
     caption: "Moment 1",
     desc: "Small detail from my daily life."
@@ -40,7 +40,7 @@ const GALLERY_DATA = {
 {
     id: 2,
     type: "image",
-    src: "./foto/2.jpg",
+    src: "./foto/2.webp",
     alt: "Memories...",
     caption: "Moment 2",
     desc: "Small detail from my daily life."
@@ -49,7 +49,7 @@ const GALLERY_DATA = {
 {
     id: 3,
     type: "image",
-    src: "./foto/3.jpeg",
+    src: "./foto/3.webp",
     alt: "Memories...",
     caption: "Moment 3",
     desc: "Small detail from my daily life."
@@ -58,17 +58,27 @@ const GALLERY_DATA = {
 {
     id: 4,
     type: "image",
-    src: "./foto/4.jpg",
+    src: "./foto/4.webp",
     alt: "Memories...",
     caption: "Moment 4",
     desc: "Small detail from my daily life."
 },
 
+{
+    id: 5,
+    type: "video",
+    src: "./foto/video5.webp",
+    videoSrc: "./foto/video5.mp4",
+    mime: "video/mp4",
+    alt: "Manual brew coffee",
+    caption: "Slow mornings.",
+    desc: "Proses brewing kopi pagi hari sebelum memulai aktivitas."
+},
 
 {
     id: 6,
     type: "image",
-    src: "./foto/5.jpg",
+    src: "./foto/5.webp",
     alt: "Memories...",
     caption: "Moment 5",
     desc: "Small detail from my daily life."
@@ -77,25 +87,47 @@ const GALLERY_DATA = {
 {
     id: 7,
     type: "image",
-    src: "./foto/6.jpg",
+    src: "./foto/6.webp",
     alt: "Memories...",
     caption: "Moment 6",
     desc: "Small detail from my daily life."
 },
 
 {
+    id: 8,
+    type: "video",
+    src: "./foto/video8.webp",
+    videoSrc: "./foto/video8.mp4",
+    mime: "video/mp4",
+    alt: "Quiet focus",
+    caption: "Quiet focus.",
+    desc: "Momen tenang di sela aktivitas."
+},
+
+{
     id: 9,
     type: "image",
-    src: "./foto/7.jpg",
+    src: "./foto/7.webp",
     alt: "Memories...",
     caption: "Moment 7",
     desc: "Small detail from my daily life."
 },
 
 {
+    id: 10,
+    type: "video",
+    src: "./foto/video10.webp",
+    videoSrc: "./foto/video10.mp4",
+    mime: "video/mp4",
+    alt: "Daily rhythm",
+    caption: "Daily rhythm.",
+    desc: "Potongan kecil dari keseharian."
+},
+
+{
     id: 11,
     type: "image",
-    src: "./foto/8.jpg",
+    src: "./foto/8.webp",
     alt: "Memories...",
     caption: "Moment 8",
     desc: "Small detail from my daily life."
@@ -104,7 +136,7 @@ const GALLERY_DATA = {
 {
     id: 12,
     type: "image",
-    src: "./foto/9.jpg",
+    src: "./foto/9.webp",
     alt: "Memories...",
     caption: "Moment 9",
     desc: "Small detail from my daily life."
@@ -113,7 +145,7 @@ const GALLERY_DATA = {
 {
     id: 13,
     type: "image",
-    src: "./foto/10.jpg",
+    src: "./foto/10.webp",
     alt: "Memories...",
     caption: "Moment 10",
     desc: "Small detail from my daily life."
@@ -122,7 +154,7 @@ const GALLERY_DATA = {
 {
     id: 14,
     type: "image",
-    src: "./foto/11.jpg",
+    src: "./foto/11.webp",
     alt: "Memories...",
     caption: "Moment 11",
     desc: "Small detail from my daily life."
@@ -131,7 +163,7 @@ const GALLERY_DATA = {
 {
     id: 15,
     type: "image",
-    src: "./foto/12.jpg",
+    src: "./foto/12.webp",
     alt: "Memories...",
     caption: "Moment 12",
     desc: "Small detail from my daily life."
@@ -140,7 +172,7 @@ const GALLERY_DATA = {
 {
     id: 16,
     type: "image",
-    src: "./foto/13.jpg",
+    src: "./foto/13.webp",
     alt: "Memories...",
     caption: "Moment 13",
     desc: "Small detail from my daily life."
@@ -149,7 +181,7 @@ const GALLERY_DATA = {
 {
     id: 17,
     type: "image",
-    src: "./foto/14.jpg",
+    src: "./foto/14.webp",
     alt: "Memories...",
     caption: "Moment 14",
     desc: "Small detail from my daily life."
@@ -158,7 +190,7 @@ const GALLERY_DATA = {
 {
     id: 18,
     type: "image",
-    src: "./foto/15.jpg",
+    src: "./foto/15.webp",
     alt: "Memories...",
     caption: "Moment 15",
     desc: "Small detail from my daily life."
@@ -167,16 +199,27 @@ const GALLERY_DATA = {
 {
     id: 19,
     type: "image",
-    src: "./foto/16.jpg",
+    src: "./foto/16.webp",
     alt: "Memories...",
     caption: "Moment 16",
     desc: "Small detail from my daily life."
 },
 
 {
+    id: 20,
+    type: "video",
+    src: "./foto/video20.webp",
+    videoSrc: "./foto/video20.mp4",
+    mime: "video/mp4",
+    alt: "Late hours",
+    caption: "Late hours.",
+    desc: "Malam panjang, pikiran masih hidup."
+},
+
+{
     id: 21,
     type: "image",
-    src: "./foto/17.jpg",
+    src: "./foto/17.webp",
     alt: "Memories...",
     caption: "Moment 17",
     desc: "Small detail from my daily life."
@@ -185,7 +228,7 @@ const GALLERY_DATA = {
 {
     id: 22,
     type: "image",
-    src: "./foto/18.jpg",
+    src: "./foto/18.webp",
     alt: "Memories...",
     caption: "Moment 18",
     desc: "Small detail from my daily life."
@@ -194,7 +237,7 @@ const GALLERY_DATA = {
 {
     id: 23,
     type: "image",
-    src: "./foto/19.jpg",
+    src: "./foto/19.webp",
     alt: "Memories...",
     caption: "Moment 19",
     desc: "Small detail from my daily life."
@@ -203,7 +246,7 @@ const GALLERY_DATA = {
 {
     id: 24,
     type: "image",
-    src: "./foto/20.jpg",
+    src: "./foto/20.webp",
     alt: "Memories...",
     caption: "Moment 20",
     desc: "Small detail from my daily life."
@@ -212,7 +255,7 @@ const GALLERY_DATA = {
 {
     id: 25,
     type: "image",
-    src: "./foto/21.jpg",
+    src: "./foto/21.webp",
     alt: "Memories...",
     caption: "Moment 21",
     desc: "Small detail from my daily life."
@@ -221,7 +264,7 @@ const GALLERY_DATA = {
 {
     id: 26,
     type: "image",
-    src: "./foto/22.jpg",
+    src: "./foto/22.webp",
     alt: "Memories...",
     caption: "Moment 22",
     desc: "Small detail from my daily life."
@@ -230,7 +273,7 @@ const GALLERY_DATA = {
 {
     id: 27,
     type: "image",
-    src: "./foto/23.jpg",
+    src: "./foto/23.webp",
     alt: "Memories...",
     caption: "Moment 23",
     desc: "Small detail from my daily life."
@@ -239,7 +282,7 @@ const GALLERY_DATA = {
 {
     id: 28,
     type: "image",
-    src: "./foto/24.jpg",
+    src: "./foto/24.webp",
     alt: "Memories...",
     caption: "Moment 24",
     desc: "Small detail from my daily life."
@@ -248,7 +291,7 @@ const GALLERY_DATA = {
 {
     id: 29,
     type: "image",
-    src: "./foto/25.jpg",
+    src: "./foto/25.webp",
     alt: "Memories...",
     caption: "Moment 25",
     desc: "Small detail from my daily life."
@@ -257,7 +300,7 @@ const GALLERY_DATA = {
 {
     id: 30,
     type: "image",
-    src: "./foto/26.jpg",
+    src: "./foto/26.webp",
     alt: "Memories...",
     caption: "Moment 26",
     desc: "Small detail from my daily life."
@@ -266,7 +309,7 @@ const GALLERY_DATA = {
 {
     id: 31,
     type: "image",
-    src: "./foto/27.jpg",
+    src: "./foto/27.webp",
     alt: "Memories...",
     caption: "Moment 27",
     desc: "Small detail from my daily life."
@@ -275,7 +318,7 @@ const GALLERY_DATA = {
 {
     id: 32,
     type: "image",
-    src: "./foto/28.jpg",
+    src: "./foto/28.webp",
     alt: "Memories...",
     caption: "Moment 28",
     desc: "Small detail from my daily life."
@@ -284,7 +327,7 @@ const GALLERY_DATA = {
 {
     id: 33,
     type: "image",
-    src: "./foto/29.jpg",
+    src: "./foto/29.webp",
     alt: "Memories...",
     caption: "Moment 29",
     desc: "Small detail from my daily life."
@@ -293,7 +336,7 @@ const GALLERY_DATA = {
 {
     id: 34,
     type: "image",
-    src: "./foto/30.jpg",
+    src: "./foto/30.webp",
     alt: "Memories...",
     caption: "Moment 30",
     desc: "Small detail from my daily life."
@@ -302,7 +345,7 @@ const GALLERY_DATA = {
 {
     id: 35,
     type: "image",
-    src: "./foto/31.jpg",
+    src: "./foto/31.webp",
     alt: "Memories...",
     caption: "Moment 31",
     desc: "Small detail from my daily life."
@@ -311,7 +354,7 @@ const GALLERY_DATA = {
 {
     id: 36,
     type: "image",
-    src: "./foto/32.jpeg",
+    src: "./foto/32.webp",
     alt: "Memories...",
     caption: "Moment 32",
     desc: "Small detail from my daily life."
@@ -320,7 +363,7 @@ const GALLERY_DATA = {
 {
     id: 37,
     type: "image",
-    src: "./foto/33.jpg",
+    src: "./foto/33.webp",
     alt: "Memories...",
     caption: "Moment 33",
     desc: "Small detail from my daily life."
@@ -329,7 +372,7 @@ const GALLERY_DATA = {
 {   
     id: 38,
     type: "image",
-    src: "./foto/34.jpg",
+    src: "./foto/34.webp",
     alt: "Memories...",
     caption: "Moment 34",
     desc: "Small detail from my daily life."
@@ -338,7 +381,7 @@ const GALLERY_DATA = {
 {
     id: 39,
     type: "image",
-    src: "./foto/dancok.jpeg",
+    src: "./foto/dancok.webp",
     alt: "Memories...",
     caption: "Moment 35",
     desc: "Small detail from my daily life."
