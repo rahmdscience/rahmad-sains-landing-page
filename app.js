@@ -64,16 +64,6 @@ const GALLERY_DATA = {
     desc: "Small detail from my daily life."
 },
 
-{
-    id: 5,
-    type: "video",
-    src: "./foto/video5.webp",
-    videoSrc: "./foto/video5.mp4",
-    mime: "video/mp4",
-    alt: "Manual brew coffee",
-    caption: "Slow mornings.",
-    desc: "Proses brewing kopi pagi hari sebelum memulai aktivitas."
-},
 
 {
     id: 6,
@@ -94,34 +84,12 @@ const GALLERY_DATA = {
 },
 
 {
-    id: 8,
-    type: "video",
-    src: "./foto/video8.webp",
-    videoSrc: "./foto/video8.mp4",
-    mime: "video/mp4",
-    alt: "Quiet focus",
-    caption: "Quiet focus.",
-    desc: "Momen tenang di sela aktivitas."
-},
-
-{
     id: 9,
     type: "image",
     src: "./foto/7.jpg",
     alt: "Memories...",
     caption: "Moment 7",
     desc: "Small detail from my daily life."
-},
-
-{
-    id: 10,
-    type: "video",
-    src: "./foto/video10.webp",
-    videoSrc: "./foto/video10.mp4",
-    mime: "video/mp4",
-    alt: "Daily rhythm",
-    caption: "Daily rhythm.",
-    desc: "Potongan kecil dari keseharian."
 },
 
 {
@@ -203,17 +171,6 @@ const GALLERY_DATA = {
     alt: "Memories...",
     caption: "Moment 16",
     desc: "Small detail from my daily life."
-},
-
-{
-    id: 20,
-    type: "video",
-    src: "./foto/video20.webp",
-    videoSrc: "./foto/video20.mp4",
-    mime: "video/mp4",
-    alt: "Late hours",
-    caption: "Late hours.",
-    desc: "Malam panjang, pikiran masih hidup."
 },
 
 {
